@@ -1,20 +1,27 @@
 {
-  "name": "@chambelli/ai",
-  "version": "0.1.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "chambelli-commerce-part1",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "dev:api": "pnpm --filter @chambelli/api dev",
+    "dev:admin": "pnpm --filter @chambelli/admin dev",
+    "dev:worker": "pnpm --filter @chambelli/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@chambelli/database": "workspace:*"
+    "@prisma/client": "^6.0.0"
   },
   "devDependencies": {
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.4",
-    "@types/react": "^19.0.0"
+    "vitest": "^2.1.4"
   }
 }
