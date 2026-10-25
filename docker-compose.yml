@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: chambelli, POSTGRES_PASSWORD: chambelli, POSTGRES_DB: chambelli}
+    ports: ["5432:5432"]
+    volumes: [commerce_pg:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  api:
+    build: {context: ., dockerfile: docker/api.Dockerfile}
+    env_file: .env
+    ports: ["8080:8080"]
+    depends_on: [postgres, redis]
+volumes: {commerce_pg: {}}

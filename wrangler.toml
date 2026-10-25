@@ -1,0 +1,5 @@
+name = "chambelli-feed-edge"
+main = "worker.ts"
+compatibility_date = "2026-10-01"
+[vars]
+API_URL = "https://commerce-api.example.com"

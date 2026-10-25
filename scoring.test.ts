@@ -1,0 +1,1 @@
+import{describe,it,expect}from"vitest";import{ProductScorer}from"../packages/recommendations/src/index.js";describe("ProductScorer",()=>{it("weights conversion highest",()=>expect(new ProductScorer().calculate({ctr:0,conversionRate:1,profitScore:0,relevanceScore:0,inventoryScore:0})).toBe(.3))});
