@@ -1,0 +1,36 @@
+{
+  "name": "@chambelli/api",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@chambelli/database": "workspace:*",
+    "@chambelli/feeds": "workspace:*",
+    "@chambelli/analytics": "workspace:*",
+    "fastify": "^5.1.0",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/helmet": "^13.0.1",
+    "zod": "^3.23.8",
+    "@chambelli/cart": "workspace:*",
+    "@chambelli/orders": "workspace:*",
+    "@chambelli/payments": "workspace:*",
+    "@chambelli/promotions": "workspace:*",
+    "@chambelli/returns": "workspace:*",
+    "@fastify/rate-limit": "^10.1.1",
+    "@chambelli/reporting": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "files": [
+    "dist",
+    "public"
+  ]
+}

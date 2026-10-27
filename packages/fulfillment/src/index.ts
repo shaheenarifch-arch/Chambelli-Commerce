@@ -1,0 +1,54 @@
+import { db, OrderStatus, FulfillmentProvider, SupplierType } from "@chambelli/database";
+export interface CJOrderClient {
+  createOrder(payload: unknown, idempotencyKey: string): Promise<{ id: string; raw: unknown }>;
+}
+export class FulfillmentService {
+  constructor(private cj?: CJOrderClient) {}
+  async route(orderId: string) {
+    const order = await db.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { items: true, shippingAddress: true },
+    });
+    if (order.status !== OrderStatus.PAID && order.status !== OrderStatus.READY_FOR_FULFILLMENT)
+      throw new Error("ORDER_NOT_READY");
+    const cjItems = order.items.filter((i) => i.supplierType === SupplierType.CJ),
+      owned = order.items.filter((i) => i.supplierType === SupplierType.OWNED);
+    const created = [];
+    if (cjItems.length) {
+      if (!this.cj) throw new Error("CJ_ORDER_CLIENT_NOT_CONFIGURED");
+      const payload = {
+        orderId: order.id,
+        address: order.shippingAddress,
+        items: cjItems.map((i) => ({
+          supplierProductId: i.supplierProductId,
+          sku: i.sku,
+          quantity: i.quantity,
+        })),
+      };
+      const out = await this.cj.createOrder(payload, `cj-${order.id}`);
+      created.push(
+        await db.fulfillment.create({
+          data: {
+            orderId,
+            provider: FulfillmentProvider.CJ,
+            status: "SUBMITTED",
+            supplierOrderId: out.id,
+            requestPayload: payload,
+            responsePayload: out.raw as any,
+          },
+        }),
+      );
+    }
+    if (owned.length)
+      created.push(
+        await db.fulfillment.create({
+          data: { orderId, provider: FulfillmentProvider.INTERNAL, status: "PENDING_PICK" },
+        }),
+      );
+    await db.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.SUBMITTED_TO_SUPPLIER },
+    });
+    return created;
+  }
+}

@@ -1,1 +1,17 @@
-{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"esModuleInterop":true,"skipLibCheck":true,"declaration":true,"sourceMap":true,"jsx":"react-jsx","resolveJsonModule":true}}
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "sourceMap": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
