@@ -53,7 +53,8 @@ export class ChambelliClient {
   addToCart(input: {
     sessionId: string;
     websiteId: string;
-    currency: string;
+    /** Optional and ignored: the website's currency is always used. */
+    currency?: string;
     variantId: string;
     quantity: number;
   }) {

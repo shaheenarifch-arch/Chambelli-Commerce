@@ -29,6 +29,9 @@ export default {
     const cached = new Response(response.body, response);
     cached.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
     cached.headers.delete("set-cookie");
+    // The cache key ignores Origin, so a cached copy must work for every site.
+    cached.headers.set("Access-Control-Allow-Origin", "*");
+    cached.headers.delete("Vary");
     ctx.waitUntil(cache.put(key, cached.clone()));
     return cached;
   },

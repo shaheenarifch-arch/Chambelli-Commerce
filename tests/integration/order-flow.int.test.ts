@@ -119,4 +119,18 @@ describe("order flow (real database)", () => {
     const second = await new OrderService().createFromCart(input);
     expect(second.id).toBe(first.id);
   });
+
+  it("takes stock once when two payment confirmations arrive at the same moment", async () => {
+    await db.productVariant.update({ where: { id: variantId }, data: { quantity: 10 } });
+    const order = await placeOrder(2);
+    const svc = new OrderService();
+    const results = await Promise.all([
+      svc.finalizePayment(order.id),
+      svc.finalizePayment(order.id),
+    ]);
+    expect(results.map((r) => r.status).sort()).toEqual(["ALREADY_FINALIZED", "PAID"]);
+    expect((await db.productVariant.findUniqueOrThrow({ where: { id: variantId } })).quantity).toBe(
+      8,
+    );
+  });
 });

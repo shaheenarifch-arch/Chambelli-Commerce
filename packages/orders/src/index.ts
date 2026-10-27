@@ -26,7 +26,12 @@ export class OrderService {
       where: { idempotencyKey: input.idempotencyKey },
       include: { items: true },
     });
-    if (prior) return prior;
+    if (prior) {
+      // The same key from a different shopper or site must never hand back someone else's order.
+      if (prior.websiteId !== input.websiteId || prior.customerId !== (input.customerId ?? null))
+        throw new Error("IDEMPOTENCY_KEY_REUSED");
+      return prior;
+    }
 
     const cart = await db.cart.findUniqueOrThrow({
       where: { id: input.cartId },
@@ -48,15 +53,18 @@ export class OrderService {
     let subtotal = 0;
     const items = cart.items.map((i) => {
       const v = map.get(i.variantId);
-      if (!v || !v.active || v.quantity < i.quantity) throw new Error("INVENTORY_CHANGED");
-      subtotal += Number(i.unitPrice) * i.quantity;
+      if (!v || !v.active || v.product.status !== "ACTIVE" || v.quantity < i.quantity)
+        throw new Error("INVENTORY_CHANGED");
+      if (v.currency !== cart.currency) throw new Error("CURRENCY_MISMATCH");
+      // Charge today's price, not the price when the item was added to the cart.
+      subtotal += Number(v.price) * i.quantity;
       return {
         productId: v.productId,
         variantId: v.id,
         title: v.product.title,
         sku: v.sku,
         quantity: i.quantity,
-        unitPrice: i.unitPrice,
+        unitPrice: v.price,
         unitCost: v.cost,
         supplierType: v.product.supplierType,
         supplierProductId: v.product.supplierProducts[0]?.supplierProductId,
@@ -107,6 +115,14 @@ export class OrderService {
         });
         if (order.status !== OrderStatus.PENDING_PAYMENT)
           return { status: "ALREADY_FINALIZED", orderId } as const;
+        // Claim the order first. The row lock makes a concurrent finalization
+        // (webhook and capture arriving together) see 0 rows and stop, so stock
+        // and promo uses are never counted twice. A later throw undoes this too.
+        const claimed = await tx.order.updateMany({
+          where: { id: orderId, status: OrderStatus.PENDING_PAYMENT },
+          data: { status: OrderStatus.PAID },
+        });
+        if (claimed.count !== 1) return { status: "ALREADY_FINALIZED", orderId } as const;
 
         const short: string[] = [];
         for (const item of order.items) {
@@ -124,13 +140,16 @@ export class OrderService {
         if (order.promotionCode) {
           const promo = await tx.promotion.findUnique({ where: { code: order.promotionCode } });
           if (promo) {
+            // Conditional, so the counter never passes maxUses under concurrency.
             await tx.promotion.updateMany({
-              where: { id: promo.id },
+              where: {
+                id: promo.id,
+                OR: [{ maxUses: null }, { uses: { lt: promo.maxUses ?? 0 } }],
+              },
               data: { uses: { increment: 1 } },
             });
           }
         }
-        await tx.order.update({ where: { id: orderId }, data: { status: OrderStatus.PAID } });
         return { status: "PAID", orderId } as const;
       })
       .catch(async (e: unknown) => {
