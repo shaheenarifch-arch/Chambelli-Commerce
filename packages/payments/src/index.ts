@@ -11,11 +11,24 @@ export interface PayPalConfig {
 export type PaymentOutcome =
   | { kind: "succeeded"; orderId: string; paymentId: string }
   | { kind: "failed"; orderId: string; paymentId: string }
+  | { kind: "pending"; orderId: string; paymentId: string }
   | { kind: "ignored"; reason: string };
 
-/** Amounts are compared in minor units (cents) to avoid floating point drift. */
-function toMinor(amount: unknown): number {
-  return Math.round(Number(amount) * 100);
+/** Decimal places a currency uses (USD 2, JPY 0, KWD 3). */
+export function currencyDigits(currency: string): number {
+  try {
+    return (
+      new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions()
+        .maximumFractionDigits ?? 2
+    );
+  } catch {
+    return 2;
+  }
+}
+
+/** Amounts are compared in minor units to avoid floating point drift. */
+export function toMinor(amount: unknown, currency: string): number {
+  return Math.round(Number(amount) * 10 ** currencyDigits(currency));
 }
 
 async function findPayment(provider: PaymentProvider, providerPaymentId: string) {
@@ -47,7 +60,7 @@ export class StripePayments {
     const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
     const intent = await this.stripe.paymentIntents.create(
       {
-        amount: toMinor(order.total),
+        amount: toMinor(order.total, order.currency),
         currency: order.currency.toLowerCase(),
         metadata: { orderId: order.id, orderNumber: order.orderNumber },
         automatic_payment_methods: { enabled: true },
@@ -93,7 +106,7 @@ export class StripePayments {
     if (event.type === "payment_intent.succeeded") {
       const paidMinor = intent.amount_received ?? intent.amount;
       if (
-        paidMinor !== toMinor(payment.amount) ||
+        paidMinor !== toMinor(payment.amount, payment.currency) ||
         intent.currency.toUpperCase() !== payment.currency.toUpperCase()
       ) {
         await setPaymentStatus(payment.id, PaymentStatus.FAILED, {
@@ -107,6 +120,9 @@ export class StripePayments {
         await setPaymentStatus(payment.id, PaymentStatus.SUCCEEDED);
       return { kind: "succeeded", orderId: payment.orderId, paymentId: payment.id };
     }
+    // Events can arrive out of order: never move a confirmed payment back to failed.
+    if (payment.status === PaymentStatus.SUCCEEDED)
+      return { kind: "ignored", reason: "payment already succeeded" };
     await setPaymentStatus(
       payment.id,
       event.type === "payment_intent.canceled" ? PaymentStatus.CANCELED : PaymentStatus.FAILED,
@@ -158,7 +174,10 @@ export class PayPalPayments {
             reference_id: order.id,
             custom_id: order.id,
             invoice_id: order.orderNumber,
-            amount: { currency_code: order.currency, value: Number(order.total).toFixed(2) },
+            amount: {
+              currency_code: order.currency,
+              value: Number(order.total).toFixed(currencyDigits(order.currency)),
+            },
           },
         ],
       }),
@@ -211,7 +230,12 @@ export class PayPalPayments {
         };
       }>;
     };
-    if (!r.ok && body.status !== "COMPLETED") throw new Error(`PAYPAL_CAPTURE_${r.status}`);
+    if (!r.ok && body.status !== "COMPLETED") {
+      // Already captured elsewhere (e.g. the webhook won the race): let the webhook record it.
+      if (r.status === 422)
+        return { kind: "pending", orderId: payment.orderId, paymentId: payment.id };
+      throw new Error(`PAYPAL_CAPTURE_${r.status}`);
+    }
     return this.recordCapture(payment, body);
   }
 
@@ -246,17 +270,30 @@ export class PayPalPayments {
   /** Handle an already-verified PayPal webhook event. */
   async handleVerifiedEvent(event: {
     event_type?: string;
-    resource?: { supplementary_data?: { related_ids?: { order_id?: string } } };
+    resource?: {
+      status?: string;
+      amount?: { value: string; currency_code: string };
+      supplementary_data?: { related_ids?: { order_id?: string } };
+    };
   }): Promise<PaymentOutcome> {
     const paypalOrderId = event.resource?.supplementary_data?.related_ids?.order_id;
     if (!paypalOrderId) return { kind: "ignored", reason: "no related order id" };
-    if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") return this.capture(paypalOrderId);
+    const payment = await findPayment(PaymentProvider.PAYPAL, paypalOrderId);
+    if (!payment) return { kind: "ignored", reason: "unknown order" };
+
+    if (event.event_type === "PAYMENT.CAPTURE.COMPLETED" && event.resource?.amount) {
+      // The verified event carries the capture itself; record it rather than capturing again.
+      return this.recordCaptureResult(payment, {
+        status: "COMPLETED",
+        amount: event.resource.amount,
+      });
+    }
     if (
       event.event_type === "PAYMENT.CAPTURE.DENIED" ||
       event.event_type === "PAYMENT.CAPTURE.DECLINED"
     ) {
-      const payment = await findPayment(PaymentProvider.PAYPAL, paypalOrderId);
-      if (!payment) return { kind: "ignored", reason: "unknown order" };
+      if (payment.status === PaymentStatus.SUCCEEDED)
+        return { kind: "ignored", reason: "payment already succeeded" };
       await setPaymentStatus(payment.id, PaymentStatus.FAILED);
       return { kind: "failed", orderId: payment.orderId, paymentId: payment.id };
     }
@@ -264,7 +301,7 @@ export class PayPalPayments {
   }
 
   private async recordCapture(
-    payment: { id: string; orderId: string; amount: unknown; currency: string },
+    payment: { id: string; orderId: string; amount: unknown; currency: string; status: string },
     body: {
       status?: string;
       purchase_units?: Array<{
@@ -275,12 +312,29 @@ export class PayPalPayments {
     },
   ): Promise<PaymentOutcome> {
     const capture = body.purchase_units?.[0]?.payments?.captures?.[0];
-    if (body.status !== "COMPLETED" || capture?.status !== "COMPLETED") {
+    if (!capture) {
       await setPaymentStatus(payment.id, PaymentStatus.FAILED, { paypalStatus: body.status });
       return { kind: "failed", orderId: payment.orderId, paymentId: payment.id };
     }
+    return this.recordCaptureResult(payment, capture);
+  }
+
+  private async recordCaptureResult(
+    payment: { id: string; orderId: string; amount: unknown; currency: string; status: string },
+    capture: { status: string; amount: { value: string; currency_code: string } },
+  ): Promise<PaymentOutcome> {
+    if (payment.status === PaymentStatus.SUCCEEDED)
+      return { kind: "succeeded", orderId: payment.orderId, paymentId: payment.id };
+    // PENDING means PayPal is still reviewing; the CAPTURE.COMPLETED webhook finishes it later.
+    if (capture.status === "PENDING")
+      return { kind: "pending", orderId: payment.orderId, paymentId: payment.id };
+    if (capture.status !== "COMPLETED") {
+      await setPaymentStatus(payment.id, PaymentStatus.FAILED, { paypalStatus: capture.status });
+      return { kind: "failed", orderId: payment.orderId, paymentId: payment.id };
+    }
     if (
-      toMinor(capture.amount.value) !== toMinor(payment.amount) ||
+      toMinor(capture.amount.value, payment.currency) !==
+        toMinor(payment.amount, payment.currency) ||
       capture.amount.currency_code.toUpperCase() !== payment.currency.toUpperCase()
     ) {
       await setPaymentStatus(payment.id, PaymentStatus.FAILED, { reason: "AMOUNT_MISMATCH" });

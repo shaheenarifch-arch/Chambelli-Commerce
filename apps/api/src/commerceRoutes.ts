@@ -11,7 +11,8 @@ import { config } from "./config.js";
 const AddItem = z.object({
   sessionId: z.string().min(8).max(100),
   websiteId: z.string().uuid(),
-  currency: z.string().length(3).toUpperCase(),
+  /** Ignored: the charge currency always comes from the website, never the browser. */
+  currency: z.string().length(3).optional(),
   variantId: z.string().uuid(),
   quantity: z.number().int().min(1).max(20),
 });
@@ -65,7 +66,7 @@ export async function commerceRoutes(app: FastifyInstance) {
     const b = AddItem.parse(req.body);
     const site = await db.website.findUnique({ where: { id: b.websiteId } });
     if (!site || !site.active) throw new Error("WEBSITE_NOT_FOUND");
-    const cart = await carts.getOrCreate(b.sessionId, b.websiteId, b.currency);
+    const cart = await carts.getOrCreate(b.sessionId, b.websiteId, site.currency);
     await carts.add(cart.id, b.variantId, b.quantity);
     return carts.summary(cart.id);
   });
@@ -94,7 +95,8 @@ export async function commerceRoutes(app: FastifyInstance) {
     const customer = await db.customer.upsert({
       where: { email: b.customerEmail.toLowerCase() },
       create: { email: b.customerEmail.toLowerCase(), name: b.customerName },
-      update: b.customerName ? { name: b.customerName } : {},
+      // Never let an anonymous checkout rename an existing customer.
+      update: {},
     });
     const address = await db.address.create({ data: { ...b.address, customerId: customer.id } });
     // Shipping and tax stay at zero until real quote services are connected (see docs/PART2.md).
@@ -135,6 +137,8 @@ export async function commerceRoutes(app: FastifyInstance) {
     const paypal = paypalClient();
     if (!paypal) return reply.code(503).send({ error: "PAYPAL_NOT_CONFIGURED" });
     const outcome = await paypal.capture(paypalOrderId);
+    if (outcome.kind === "pending")
+      return reply.code(202).send({ orderId: outcome.orderId, status: "PAYMENT_PENDING" });
     if (outcome.kind !== "succeeded")
       return reply.code(402).send({ error: "PAYMENT_NOT_COMPLETED" });
     const result = await orders.finalizePayment(outcome.orderId);

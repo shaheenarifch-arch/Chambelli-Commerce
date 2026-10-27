@@ -12,8 +12,17 @@ export class CartService {
   }
   async add(cartId: string, variantId: string, quantity: number) {
     if (quantity < 1 || quantity > 20) throw new Error("INVALID_QUANTITY");
-    const v = await db.productVariant.findUniqueOrThrow({ where: { id: variantId } });
-    if (!v.active || v.quantity < quantity) throw new Error("INSUFFICIENT_STOCK");
+    const [cart, v, existing] = await Promise.all([
+      db.cart.findUniqueOrThrow({ where: { id: cartId } }),
+      db.productVariant.findUniqueOrThrow({ where: { id: variantId }, include: { product: true } }),
+      db.cartItem.findUnique({ where: { cartId_variantId: { cartId, variantId } } }),
+    ]);
+    if (cart.status !== CartStatus.ACTIVE) throw new Error("CART_NOT_ORDERABLE");
+    if (v.currency !== cart.currency) throw new Error("CURRENCY_MISMATCH");
+    const total = (existing?.quantity ?? 0) + quantity;
+    if (total > 20) throw new Error("INVALID_QUANTITY");
+    if (!v.active || v.product.status !== "ACTIVE" || v.quantity < total)
+      throw new Error("INSUFFICIENT_STOCK");
     return db.cartItem.upsert({
       where: { cartId_variantId: { cartId, variantId } },
       create: { cartId, variantId, quantity, unitPrice: v.price },
