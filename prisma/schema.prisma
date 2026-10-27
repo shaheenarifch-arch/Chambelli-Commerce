@@ -334,6 +334,7 @@ model Order {
   taxTotal          Decimal       @default(0) @db.Decimal(12, 2)
   total             Decimal       @db.Decimal(12, 2)
   idempotencyKey    String        @unique
+  promotionCode     String?
   customer          Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   shippingAddress   Address       @relation(fields: [shippingAddressId], references: [id])
   items             OrderItem[]

@@ -61,9 +61,6 @@ importers:
       '@chambelli/cart':
         specifier: workspace:*
         version: link:../../packages/cart
-      '@chambelli/catalog':
-        specifier: workspace:*
-        version: link:../../packages/catalog
       '@chambelli/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -79,6 +76,9 @@ importers:
       '@chambelli/promotions':
         specifier: workspace:*
         version: link:../../packages/promotions
+      '@chambelli/reporting':
+        specifier: workspace:*
+        version: link:../../packages/reporting
       '@chambelli/returns':
         specifier: workspace:*
         version: link:../../packages/returns

@@ -1,7 +1,11 @@
 import { db, PromotionType } from "@chambelli/database";
+import { computeDiscount } from "./discount.js";
+
+export { computeDiscount };
+
 export class PromotionService {
   async apply(code: string, subtotal: number) {
-    const p = await db.promotion.findUnique({ where: { code: code.toUpperCase() } });
+    const p = await db.promotion.findUnique({ where: { code: code.trim().toUpperCase() } });
     const now = new Date();
     if (
       !p ||
@@ -12,15 +16,9 @@ export class PromotionService {
       (p.minimumSubtotal && subtotal < Number(p.minimumSubtotal))
     )
       throw new Error("PROMOTION_NOT_ELIGIBLE");
-    let discount =
-      p.type === PromotionType.PERCENT
-        ? (subtotal * Number(p.value)) / 100
-        : p.type === PromotionType.FIXED
-          ? Number(p.value)
-          : 0;
     return {
       promotion: p,
-      discount: Math.min(subtotal, Number(discount.toFixed(2))),
+      discount: computeDiscount(p.type, Number(p.value), subtotal),
       freeShipping: p.type === PromotionType.FREE_SHIPPING,
     };
   }
