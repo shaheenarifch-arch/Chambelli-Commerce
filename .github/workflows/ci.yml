@@ -1,17 +1,52 @@
 name: ci
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: chambelli
+          POSTGRES_PASSWORD: chambelli
+          POSTGRES_DB: chambelli
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U chambelli"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      DATABASE_URL: postgresql://chambelli:chambelli@localhost:5432/chambelli
+      REDIS_URL: redis://localhost:6379
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
-      - run: pnpm install --frozen-lockfile=false
-      - run: pnpm db:generate
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
       - run: pnpm db:validate
-      - run: pnpm typecheck
-      - run: pnpm test
+      - run: pnpm db:generate
       - run: pnpm build
+      - run: pnpm typecheck
+      - run: node --check apps/api/public/widget.js
+      - name: Unit tests
+        run: pnpm test
+      - name: Apply schema to a real database
+        run: pnpm db:push
+      - name: Integration tests (real database)
+        run: pnpm test:integration

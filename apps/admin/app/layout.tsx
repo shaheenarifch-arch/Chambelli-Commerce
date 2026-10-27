@@ -1,10 +1,23 @@
-import React from "react";
-export default function Layout({ children }: { children: React.ReactNode }) {
+import type { ReactNode } from "react";
+import "./globals.css";
+
+export const metadata = {
+  title: "Chambelli Commerce Hub",
+  description: "Central product hub for the Chambelli affiliate network",
+};
+
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <html>
-      <body style={{ margin: 0, fontFamily: "system-ui", background: "#f5f7fb", color: "#111827" }}>
-        <header style={{ padding: 20, background: "#111827", color: "white" }}>
-          <strong>Chambelli Commerce Hub</strong>
+    <html lang="en">
+      <body>
+        <header className="topbar">
+          <div className="brand">
+            <span className="logo">C</span>
+            <strong>Chambelli Commerce Hub</strong>
+          </div>
+          <span className="env">
+            {process.env.NODE_ENV === "production" ? "Production" : "Development"}
+          </span>
         </header>
         {children}
       </body>

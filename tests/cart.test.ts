@@ -1,8 +1,0 @@
-import { describe, it, expect } from "vitest";
-describe("commerce guardrails", () => {
-  it("requires positive quantity", () =>
-    expect(() => {
-      const q = 0;
-      if (q < 1) throw new Error("INVALID_QUANTITY");
-    }).toThrow("INVALID_QUANTITY"));
-});
