@@ -1,1 +1,0 @@
-export interface ScoreInput{ctr:number;conversionRate:number;profitScore:number;relevanceScore:number;inventoryScore:number}export class ProductScorer{calculate(x:ScoreInput){return x.ctr*.2+x.conversionRate*.3+x.profitScore*.2+x.relevanceScore*.2+x.inventoryScore*.1}}
