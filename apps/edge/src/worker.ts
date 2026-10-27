@@ -1,1 +1,21 @@
-export interface Env{API_URL:string}export default{async fetch(request:Request,env:Env,ctx:ExecutionContext){const url=new URL(request.url);const upstream=new URL(url.pathname+url.search,env.API_URL);const key=new Request(request.url,request);const cache=caches.default;const hit=await cache.match(key);if(hit)return hit;const response=await fetch(upstream,{headers:request.headers});if(response.ok){const cached=new Response(response.body,response);cached.headers.set("Cache-Control","public, max-age=300, s-maxage=600");ctx.waitUntil(cache.put(key,cached.clone()));return cached}return response}};
+export interface Env {
+  API_URL: string;
+}
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const url = new URL(request.url);
+    const upstream = new URL(url.pathname + url.search, env.API_URL);
+    const key = new Request(request.url, request);
+    const cache = caches.default;
+    const hit = await cache.match(key);
+    if (hit) return hit;
+    const response = await fetch(upstream, { headers: request.headers });
+    if (response.ok) {
+      const cached = new Response(response.body, response);
+      cached.headers.set("Cache-Control", "public, max-age=300, s-maxage=600");
+      ctx.waitUntil(cache.put(key, cached.clone()));
+      return cached;
+    }
+    return response;
+  },
+};

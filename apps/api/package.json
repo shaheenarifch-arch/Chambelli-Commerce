@@ -1,13 +1,13 @@
 {
   "name": "@chambelli/api",
   "version": "0.2.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@chambelli/database": "workspace:*",
@@ -22,11 +22,11 @@
     "@chambelli/orders": "workspace:*",
     "@chambelli/payments": "workspace:*",
     "@chambelli/promotions": "workspace:*",
-    "@chambelli/returns": "workspace:*"
+    "@chambelli/returns": "workspace:*",
+    "@fastify/rate-limit": "^10.1.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.4"
+    "typescript": "^5.6.3"
   }
 }

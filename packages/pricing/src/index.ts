@@ -1,1 +1,26 @@
-import {db,Prisma,SupplierType} from "@chambelli/database";export class PricingService{async calculate(cost:number,shipping:number,category:string,supplierType:SupplierType){const rule=await db.pricingRule.findFirst({where:{active:true,AND:[{OR:[{category:null},{category}]},{OR:[{supplierType:null},{supplierType}]}]},orderBy:{createdAt:"desc"}});const markup=Number(rule?.markupPercent??35);const floor=Number(rule?.minimumMarginPercent??15);const landed=cost+shipping;const price=Math.max(landed*(1+markup/100),landed/(1-floor/100));return Math.ceil(price*100)/100}async apply(variantId:string,price:number){return db.productVariant.update({where:{id:variantId},data:{price:new Prisma.Decimal(price)}})}}
+import { db, Prisma, SupplierType } from "@chambelli/database";
+export class PricingService {
+  async calculate(cost: number, shipping: number, category: string, supplierType: SupplierType) {
+    const rule = await db.pricingRule.findFirst({
+      where: {
+        active: true,
+        AND: [
+          { OR: [{ category: null }, { category }] },
+          { OR: [{ supplierType: null }, { supplierType }] },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const markup = Number(rule?.markupPercent ?? 35);
+    const floor = Number(rule?.minimumMarginPercent ?? 15);
+    const landed = cost + shipping;
+    const price = Math.max(landed * (1 + markup / 100), landed / (1 - floor / 100));
+    return Math.ceil(price * 100) / 100;
+  }
+  async apply(variantId: string, price: number) {
+    return db.productVariant.update({
+      where: { id: variantId },
+      data: { price: new Prisma.Decimal(price) },
+    });
+  }
+}

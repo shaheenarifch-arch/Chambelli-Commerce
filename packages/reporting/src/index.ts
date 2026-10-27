@@ -1,1 +1,22 @@
-import {db,PaymentStatus} from "@chambelli/database";export class CommerceReports{async overview(from:Date,to:Date){const[orders,payments]=await Promise.all([db.order.aggregate({where:{createdAt:{gte:from,lt:to}},_count:true,_sum:{total:true,subtotal:true,discountTotal:true}}),db.payment.aggregate({where:{createdAt:{gte:from,lt:to},status:PaymentStatus.SUCCEEDED},_sum:{amount:true}})]);return{orders:orders._count,grossOrderValue:Number(orders._sum.total??0),successfulPayments:Number(payments._sum.amount??0),discounts:Number(orders._sum.discountTotal??0)}}}
+import { db, PaymentStatus } from "@chambelli/database";
+export class CommerceReports {
+  async overview(from: Date, to: Date) {
+    const [orders, payments] = await Promise.all([
+      db.order.aggregate({
+        where: { createdAt: { gte: from, lt: to } },
+        _count: true,
+        _sum: { total: true, subtotal: true, discountTotal: true },
+      }),
+      db.payment.aggregate({
+        where: { createdAt: { gte: from, lt: to }, status: PaymentStatus.SUCCEEDED },
+        _sum: { amount: true },
+      }),
+    ]);
+    return {
+      orders: orders._count,
+      grossOrderValue: Number(orders._sum.total ?? 0),
+      successfulPayments: Number(payments._sum.amount ?? 0),
+      discounts: Number(orders._sum.discountTotal ?? 0),
+    };
+  }
+}

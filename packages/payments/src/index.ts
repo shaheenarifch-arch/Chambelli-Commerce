@@ -1,4 +1,88 @@
-import Stripe from "stripe";import {db,PaymentProvider,PaymentStatus,Prisma} from "@chambelli/database";
-export interface PayPalConfig{clientId:string;clientSecret:string;baseUrl:string}
-export class StripePayments{private stripe:Stripe;constructor(key:string){this.stripe=new Stripe(key)}async create(orderId:string,idempotencyKey:string){const order=await db.order.findUniqueOrThrow({where:{id:orderId}});const intent=await this.stripe.paymentIntents.create({amount:Math.round(Number(order.total)*100),currency:order.currency.toLowerCase(),metadata:{orderId:order.id}},{idempotencyKey});await db.payment.create({data:{orderId,provider:PaymentProvider.STRIPE,providerPaymentId:intent.id,status:PaymentStatus.PENDING,amount:order.total,currency:order.currency,idempotencyKey}});return{provider:"stripe",clientSecret:intent.client_secret,paymentId:intent.id}}}
-export class PayPalPayments{constructor(private c:PayPalConfig){}private async token(){const b=Buffer.from(`${this.c.clientId}:${this.c.clientSecret}`).toString("base64");const r=await fetch(`${this.c.baseUrl}/v1/oauth2/token`,{method:"POST",headers:{authorization:`Basic ${b}`,"content-type":"application/x-www-form-urlencoded"},body:"grant_type=client_credentials"});if(!r.ok)throw new Error(`PAYPAL_AUTH_${r.status}`);return (await r.json() as any).access_token}async create(orderId:string,idempotencyKey:string){const order=await db.order.findUniqueOrThrow({where:{id:orderId}}),token=await this.token();const r=await fetch(`${this.c.baseUrl}/v2/checkout/orders`,{method:"POST",headers:{authorization:`Bearer ${token}`,"content-type":"application/json","PayPal-Request-Id":idempotencyKey},body:JSON.stringify({intent:"CAPTURE",purchase_units:[{reference_id:order.id,amount:{currency_code:order.currency,value:Number(order.total).toFixed(2)}}]})});if(!r.ok)throw new Error(`PAYPAL_CREATE_${r.status}`);const p:any=await r.json();await db.payment.create({data:{orderId,provider:PaymentProvider.PAYPAL,providerPaymentId:p.id,status:PaymentStatus.PENDING,amount:order.total,currency:order.currency,idempotencyKey}});return{provider:"paypal",paymentId:p.id,approveUrl:p.links?.find((x:any)=>x.rel==="approve")?.href}}}
+import Stripe from "stripe";
+import { db, PaymentProvider, PaymentStatus, Prisma } from "@chambelli/database";
+export interface PayPalConfig {
+  clientId: string;
+  clientSecret: string;
+  baseUrl: string;
+}
+export class StripePayments {
+  private stripe: Stripe;
+  constructor(key: string) {
+    this.stripe = new Stripe(key);
+  }
+  async create(orderId: string, idempotencyKey: string) {
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    const intent = await this.stripe.paymentIntents.create(
+      {
+        amount: Math.round(Number(order.total) * 100),
+        currency: order.currency.toLowerCase(),
+        metadata: { orderId: order.id },
+      },
+      { idempotencyKey },
+    );
+    await db.payment.create({
+      data: {
+        orderId,
+        provider: PaymentProvider.STRIPE,
+        providerPaymentId: intent.id,
+        status: PaymentStatus.PENDING,
+        amount: order.total,
+        currency: order.currency,
+        idempotencyKey,
+      },
+    });
+    return { provider: "stripe", clientSecret: intent.client_secret, paymentId: intent.id };
+  }
+}
+export class PayPalPayments {
+  constructor(private c: PayPalConfig) {}
+  private async token() {
+    const b = Buffer.from(`${this.c.clientId}:${this.c.clientSecret}`).toString("base64");
+    const r = await fetch(`${this.c.baseUrl}/v1/oauth2/token`, {
+      method: "POST",
+      headers: { authorization: `Basic ${b}`, "content-type": "application/x-www-form-urlencoded" },
+      body: "grant_type=client_credentials",
+    });
+    if (!r.ok) throw new Error(`PAYPAL_AUTH_${r.status}`);
+    return ((await r.json()) as any).access_token;
+  }
+  async create(orderId: string, idempotencyKey: string) {
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } }),
+      token = await this.token();
+    const r = await fetch(`${this.c.baseUrl}/v2/checkout/orders`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+        "PayPal-Request-Id": idempotencyKey,
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            reference_id: order.id,
+            amount: { currency_code: order.currency, value: Number(order.total).toFixed(2) },
+          },
+        ],
+      }),
+    });
+    if (!r.ok) throw new Error(`PAYPAL_CREATE_${r.status}`);
+    const p: any = await r.json();
+    await db.payment.create({
+      data: {
+        orderId,
+        provider: PaymentProvider.PAYPAL,
+        providerPaymentId: p.id,
+        status: PaymentStatus.PENDING,
+        amount: order.total,
+        currency: order.currency,
+        idempotencyKey,
+      },
+    });
+    return {
+      provider: "paypal",
+      paymentId: p.id,
+      approveUrl: p.links?.find((x: any) => x.rel === "approve")?.href,
+    };
+  }
+}

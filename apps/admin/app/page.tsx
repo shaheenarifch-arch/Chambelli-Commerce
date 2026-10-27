@@ -1,1 +1,40 @@
-const api=process.env.PUBLIC_API_BASE_URL??"http://localhost:8080";async function get(path:string){const r=await fetch(api+path,{headers:{"x-admin-key":process.env.ADMIN_API_KEY??""},cache:"no-store"});return r.ok?r.json():[]}export default async function Page(){const[products,sites]=await Promise.all([get("/v1/admin/products"),get("/v1/admin/websites")]);return <main style={{padding:28}}><h1>Commerce Command Center</h1><div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:16}}><Card label="Products" value={products.length}/><Card label="Websites" value={sites.length}/><Card label="Network target" value="28 sites"/></div><h2>Recent products</h2><div style={{background:"white",borderRadius:16,padding:16}}>{products.slice(0,10).map((p:any)=><div key={p.id} style={{padding:12,borderBottom:"1px solid #eee"}}>{p.title} · {p.status}</div>)}</div></main>}function Card({label,value}:{label:string;value:string|number}){return <div style={{background:"white",borderRadius:16,padding:20}}><div style={{color:"#6b7280"}}>{label}</div><div style={{fontSize:32,fontWeight:700}}>{value}</div></div>}
+const api = process.env.PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+async function get(path: string) {
+  const r = await fetch(api + path, {
+    headers: { "x-admin-key": process.env.ADMIN_API_KEY ?? "" },
+    cache: "no-store",
+  });
+  return r.ok ? r.json() : [];
+}
+export default async function Page() {
+  const [products, sites] = await Promise.all([
+    get("/v1/admin/products"),
+    get("/v1/admin/websites"),
+  ]);
+  return (
+    <main style={{ padding: 28 }}>
+      <h1>Commerce Command Center</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
+        <Card label="Products" value={products.length} />
+        <Card label="Websites" value={sites.length} />
+        <Card label="Network target" value="28 sites" />
+      </div>
+      <h2>Recent products</h2>
+      <div style={{ background: "white", borderRadius: 16, padding: 16 }}>
+        {products.slice(0, 10).map((p: any) => (
+          <div key={p.id} style={{ padding: 12, borderBottom: "1px solid #eee" }}>
+            {p.title} · {p.status}
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+function Card({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div style={{ background: "white", borderRadius: 16, padding: 20 }}>
+      <div style={{ color: "#6b7280" }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
