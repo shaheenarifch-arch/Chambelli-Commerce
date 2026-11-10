@@ -1,0 +1,27 @@
+# ShopDress CJ shortlist: run by hand from the Actions tab ("Run workflow").
+# Needs the repository secret CJ_API_KEY (CJ: My CJ > Authorization > API).
+# Writes shortlist/cj-shortlist.csv to the cj-shortlist branch for review.
+name: CJ shortlist
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  shortlist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/cj-shortlist.mjs
+        env:
+          CJ_API_KEY: ${{ secrets.CJ_API_KEY }}
+      - name: Commit shortlist to the cj-shortlist branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B cj-shortlist
+          git add -f shortlist/cj-shortlist.csv
+          git commit -m "CJ shortlist $(date -u +%F)"
+          git push -f origin cj-shortlist
