@@ -55,12 +55,18 @@ importers:
 
   apps/api:
     dependencies:
+      '@chambelli/amazon':
+        specifier: workspace:*
+        version: link:../../packages/amazon
       '@chambelli/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
       '@chambelli/cart':
         specifier: workspace:*
         version: link:../../packages/cart
+      '@chambelli/cj':
+        specifier: workspace:*
+        version: link:../../packages/cj
       '@chambelli/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -122,6 +128,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@chambelli/amazon':
+        specifier: workspace:*
+        version: link:../../packages/amazon
       '@chambelli/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
@@ -153,6 +162,19 @@ importers:
 
   packages/ai:
     dependencies:
+      '@chambelli/database':
+        specifier: workspace:*
+        version: link:../database
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/amazon:
+    dependencies:
+      '@chambelli/cj':
+        specifier: workspace:*
+        version: link:../cj
       '@chambelli/database':
         specifier: workspace:*
         version: link:../database

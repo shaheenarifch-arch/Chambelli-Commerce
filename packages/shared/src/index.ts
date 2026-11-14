@@ -1,4 +1,4 @@
-export const MAX_CAROUSEL_PRODUCTS = 30;
+export const MAX_CAROUSEL_PRODUCTS = 50;
 export function slugify(v: string) {
   return v
     .toLowerCase()

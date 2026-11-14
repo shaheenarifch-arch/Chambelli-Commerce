@@ -15,6 +15,7 @@
     "@chambelli/catalog": "workspace:*",
     "@chambelli/inventory": "workspace:*",
     "@chambelli/pricing": "workspace:*",
+    "@chambelli/amazon": "workspace:*",
     "node-cron": "^3.0.3"
   },
   "devDependencies": {

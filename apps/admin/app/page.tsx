@@ -1,7 +1,10 @@
 export const dynamic = "force-dynamic";
 
 const api = process.env.PUBLIC_API_BASE_URL ?? "http://localhost:8080";
-const NETWORK_TARGET = 28;
+const NETWORK_TARGET = 15;
+/** Each site carousel should carry 30 to 50 products (config/cj-site-map.json). */
+const MIN_PER_SITE = 30;
+const MAX_PER_SITE = 50;
 
 type Product = {
   id: string;
@@ -210,7 +213,12 @@ export default async function Page() {
                 <th>Site</th>
                 <th>Domain</th>
                 <th>Status</th>
-                <th className="num">Products assigned</th>
+                <th
+                  className="num"
+                  title={`Each carousel should have ${MIN_PER_SITE} to ${MAX_PER_SITE} products`}
+                >
+                  Products ({MIN_PER_SITE}–{MAX_PER_SITE})
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -223,7 +231,14 @@ export default async function Page() {
                       {s.active ? "LIVE" : "OFF"}
                     </span>
                   </td>
-                  <td className="num">{s._count?.assignments ?? 0}</td>
+                  <td className="num">
+                    {s._count?.assignments ?? 0}{" "}
+                    {(s._count?.assignments ?? 0) < MIN_PER_SITE ? (
+                      <span className="pill FAILED" title="Approve more products for this site">
+                        below {MIN_PER_SITE}
+                      </span>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

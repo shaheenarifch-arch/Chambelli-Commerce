@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { CJConnector, parseCJPrice } from "../packages/cj/src/index.js";
+import { readFileSync } from "node:fs";
+import {
+  CJConnector,
+  parseCJPrice,
+  topCategoryIndex,
+  normalizeCategory,
+  sitesForCategory,
+  type SiteMap,
+} from "../packages/cj/src/index.js";
 
 describe("parseCJPrice", () => {
   it("handles numbers, numeric strings and ranges", () => {
@@ -65,5 +73,113 @@ describe("CJConnector", () => {
     await expect(new CJConnector("tok", "https://cj.test").listProducts()).rejects.toThrow(
       "CJ_API_ERROR: token expired",
     );
+  });
+});
+
+describe("CJ categories and site map", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const tree = [
+    {
+      categoryFirstId: "f1",
+      categoryFirstName: "Pet Supplies",
+      categoryFirstList: [
+        {
+          categorySecondId: "s1",
+          categorySecondName: "Dogs",
+          categorySecondList: [{ categoryId: "t1", categoryName: "Dog Toys" }],
+        },
+      ],
+    },
+    { categoryFirstName: "Home, Garden & Furniture", categoryFirstList: [] },
+  ];
+
+  it("maps every category level to its top-level name", () => {
+    const index = topCategoryIndex(tree);
+    expect(index.get("f1")).toBe("Pet Supplies");
+    expect(index.get("s1")).toBe("Pet Supplies");
+    expect(index.get("t1")).toBe("Pet Supplies");
+  });
+
+  it("matches category names loosely", () => {
+    expect(normalizeCategory("Home, Garden & Furniture")).toBe(
+      normalizeCategory("home garden and furniture"),
+    );
+  });
+
+  it("finds the sites for a category", () => {
+    const map = JSON.parse(readFileSync("config/cj-site-map.json", "utf8")) as SiteMap;
+    expect(sitesForCategory(map, "Pet Supplies").map((s) => s.domain)).toEqual([
+      "petscoolstuff.trade",
+    ]);
+    expect(sitesForCategory(map, "Unknown")).toEqual([]);
+  });
+
+  it("every mapped site is complete and unique", () => {
+    const map = JSON.parse(readFileSync("config/cj-site-map.json", "utf8")) as SiteMap;
+    const slugs = map.sites.map((s) => s.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    for (const s of map.sites) {
+      expect(s.cjCategories.length).toBeGreaterThan(0);
+      expect(s.terms.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("sends search filters to CJ", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ result: true, data: { list: [] } })));
+    vi.stubGlobal("fetch", fetchMock);
+    await new CJConnector("tok", "https://cj.test").listProducts(1, 50, {
+      productNameEn: "dog toy",
+      countryCode: "US",
+    });
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get("productNameEn")).toBe("dog toy");
+    expect(url.searchParams.get("countryCode")).toBe("US");
+  });
+});
+
+describe("website carousel site map", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { titleFitsSite } = await import("../packages/cj/src/index.js");
+  const map = JSON.parse(
+    readFileSync(new URL("../config/cj-site-map.json", import.meta.url), "utf8"),
+  );
+
+  it("covers the 15 chosen sites with 30 to 50 products each", () => {
+    expect(map.productsPerSite).toBe(50);
+    expect(map.minProductsPerSite).toBe(30);
+    const domains = map.sites.map((s: { domain: string }) => s.domain);
+    expect(domains).toHaveLength(15);
+    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(15);
+    for (const d of [
+      "shopdress.us",
+      "firearmsafety.us",
+      "medicalsupplie.com",
+      "bostondaily.us",
+      "ticktes.online",
+    ])
+      expect(domains).toContain(d);
+  });
+
+  it("keeps firearmsafety.us to safes and vaults", () => {
+    const site = map.sites.find((s: { slug: string }) => s.slug === "firearmsafety");
+    expect(titleFitsSite("Biometric Gun Safe for Pistols, Quick Access", site)).toBe(true);
+    expect(titleFitsSite("Fireproof Document Lock Box with Key", site)).toBe(true);
+    expect(titleFitsSite("Tactical Leather Holster", site)).toBe(false);
+    expect(titleFitsSite("LED Desk Lamp", site)).toBe(false);
+  });
+
+  it("keeps medicalsupplie.com to everyday non-prescription supplies", () => {
+    const site = map.sites.find((s: { slug: string }) => s.slug === "medicalsupplie");
+    expect(titleFitsSite("Adjustable Knee Brace Support", site)).toBe(true);
+    expect(titleFitsSite("Weekly Pill Organizer 7 Day", site)).toBe(true);
+    expect(titleFitsSite("Disposable Syringe Needle Set", site)).toBe(false);
+    expect(titleFitsSite("Makeup Brush Set", site)).toBe(false);
+  });
+
+  it("lets sites without title rules take anything in their categories", () => {
+    expect(titleFitsSite("Anything", {})).toBe(true);
   });
 });
