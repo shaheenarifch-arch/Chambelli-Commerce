@@ -126,6 +126,29 @@ tests against a real PostgreSQL database.
 - **Edge cache:** set `API_URL` in `apps/edge/wrangler.toml`, then `pnpm --filter @chambelli/edge deploy`.
 - **Admin:** any Next.js host; keep `ADMIN_API_KEY` server-side only.
 
+## Chambelli Canada
+
+A Canadian storefront at `agent.getservices.ai/ca`, selling only CJ products held in Canadian
+warehouses, priced in CAD.
+
+1. **Settings.** In `.env`, set `CJ_SYNC_CANADA=true`, `USD_TO_CAD_RATE` (for example `1.38`) and
+   `CA_SHIPPING_ESTIMATE_CAD` (average CJ shipping inside Canada). The Canada sync is skipped until
+   both values are set, so nothing is ever priced on a guess.
+2. **Sync.** After each CJ sync, the worker pulls products with stock in Canada. It gives each one a
+   CAD variant (`<sku>-CA`, "Ships from Canada") priced for a 30% margin
+   (`CA_MIN_MARGIN_PERCENT`) with shipping included. New products stay `DRAFT` until you approve them.
+3. **Storefront.** Run `pnpm db:canada` to create the `chambelli-ca` site (market CA, CAD) and put
+   up to 30 approved products with Canadian stock on its carousel. Run it again after approving
+   more products.
+4. **Page.** The API serves the storefront page at `/ca`. Reverse-proxy `agent.getservices.ai/ca`
+   to it, and set `PUBLIC_API_BASE_URL` so the carousel loads from the right host.
+
+At checkout the Canada site accepts only Canadian addresses with a valid province and postal code.
+GST/HST is added at the province's rate only when `CA_GST_HST_REGISTERED=true`; leave it `false`
+until you register with the CRA
+([when to register](https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/when-register-charge.html)).
+Provincial sales taxes (BC PST, MB RST, SK PST, QC QST) are not charged.
+
 ## Before taking real orders
 
 These are deliberately left as placeholders and must be connected first:

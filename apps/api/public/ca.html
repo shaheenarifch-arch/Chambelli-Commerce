@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chambelli Canada · Ships from Canada</title>
+    <meta
+      name="description"
+      content="Chambelli Canada: home, kitchen and gift finds shipped from Canadian warehouses. Prices in CAD with shipping included."
+    />
+    <style>
+      :root {
+        --ink: #1f2430;
+        --muted: #5b6272;
+        --accent: #c0392b;
+        --bg: #fbf7f4;
+        --card: #ffffff;
+        --line: #eadfd8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.55;
+      }
+      header {
+        background: var(--card);
+        border-bottom: 1px solid var(--line);
+        padding: 20px 16px;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+      }
+      header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+      }
+      .badge {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 0.85rem;
+        background: var(--bg);
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+      }
+      section.help {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-top: 28px;
+      }
+      section.help h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+      }
+      details {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        padding: 20px 16px 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Chambelli Canada</h1>
+      <p>Everyday finds shipped from Canadian warehouses, priced in Canadian dollars.</p>
+      <div class="badges" aria-label="Store highlights">
+        <span class="badge">🇨🇦 Ships from Canada</span>
+        <span class="badge">Prices in CAD</span>
+        <span class="badge">Shipping included</span>
+        <span class="badge">No border duties</span>
+      </div>
+    </header>
+
+    <main>
+      <script
+        async
+        src="{{API_BASE}}/widget.js"
+        data-api="{{API_BASE}}"
+        data-site="chambelli-ca"
+        data-placement="storefront"
+        data-title="Ships from Canada"
+      ></script>
+
+      <section class="help" aria-labelledby="help-title">
+        <h2 id="help-title">Help &amp; questions</h2>
+        <details>
+          <summary>Where do orders ship from?</summary>
+          <p>
+            Every item in this store is held in a warehouse in Canada, so your order never crosses
+            the border and you pay no customs duties or brokerage fees.
+          </p>
+        </details>
+        <details>
+          <summary>Is shipping really included?</summary>
+          <p>
+            Yes. The price you see is in Canadian dollars and already includes shipping anywhere we
+            deliver in Canada. You get a tracking number by email once your order ships.
+          </p>
+        </details>
+        <details>
+          <summary>Will I be charged sales tax?</summary>
+          <p>
+            When GST/HST applies, it is added at checkout at your province's rate and shown before
+            you pay. You can check the rate for your province on the
+            <a
+              href="https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate/calculator.html"
+              target="_blank"
+              rel="noopener"
+              >Canada Revenue Agency GST/HST calculator</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>What do I need at checkout?</summary>
+          <p>
+            A Canadian shipping address with your province and a valid postal code (for example
+            <strong>M5V 2T6</strong>). You can pay by card or PayPal; we never see or store your
+            card number.
+          </p>
+        </details>
+        <details>
+          <summary>How do I return something?</summary>
+          <p>
+            Contact us with your order number and the reason, and we will send you return
+            instructions. Email
+            <a href="mailto:agents@getservices.ai?subject=Chambelli%20Canada%20return"
+              >agents@getservices.ai</a
+            >.
+          </p>
+        </details>
+      </section>
+    </main>
+
+    <footer>Chambelli Canada · a GetServices.ai store</footer>
+  </body>
+</html>
