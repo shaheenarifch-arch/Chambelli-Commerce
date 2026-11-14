@@ -121,6 +121,7 @@ tests against a real PostgreSQL database.
 
 ## Deploy
 
+- **Google Cloud VM (production):** see [docs/DEPLOY.md](docs/DEPLOY.md) — one command installs or updates the whole stack.
 - **API:** `docker build -f docker/api.Dockerfile .`, or `docker compose up -d` for the full
   stack. Run `pnpm db:deploy` (Prisma migrations) before starting a new version.
 - **Edge cache:** set `API_URL` in `apps/edge/wrangler.toml`, then `pnpm --filter @chambelli/edge deploy`.
