@@ -13,6 +13,8 @@
     "@chambelli/database": "workspace:*",
     "@chambelli/cj": "workspace:*",
     "@chambelli/catalog": "workspace:*",
+    "@chambelli/inventory": "workspace:*",
+    "@chambelli/pricing": "workspace:*",
     "node-cron": "^3.0.3"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { db, SupplierType, ProductStatus, Prisma } from "@chambelli/database";
 import { CJConnector, parseCJPrice, type CJItem } from "@chambelli/cj";
+import { syncCanada } from "./canada.js";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = Number(process.env.CJ_SYNC_MAX_PAGES ?? 50);
@@ -82,6 +83,8 @@ export async function sync() {
       },
     });
     console.log(`CJ sync finished: ${processed} products, ${errors.length} failures`);
+    // Canada chapter: runs after the main sync, only when CJ_SYNC_CANADA=true.
+    if (process.env.CJ_SYNC_CANADA === "true") await syncCanada(cj);
   } catch (e) {
     await db.syncJob.update({
       where: { id: job.id },

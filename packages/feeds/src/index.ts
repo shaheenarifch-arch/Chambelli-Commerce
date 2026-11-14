@@ -73,14 +73,15 @@ export class FeedService {
         ],
         product: {
           status: ProductStatus.ACTIVE,
-          variants: { some: { active: true, quantity: { gt: 0 } } },
+          // Only variants priced in the site's currency (CAD on the Canada site, USD on US sites).
+          variants: { some: { active: true, quantity: { gt: 0 }, currency: site.currency } },
         },
       },
       include: {
         product: {
           include: {
             variants: {
-              where: { active: true, quantity: { gt: 0 } },
+              where: { active: true, quantity: { gt: 0 }, currency: site.currency },
               orderBy: { price: "asc" },
               take: 1,
             },

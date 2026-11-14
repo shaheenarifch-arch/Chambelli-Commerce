@@ -6,6 +6,7 @@ import { OrderService } from "@chambelli/orders";
 import { PromotionService } from "@chambelli/promotions";
 import { StripePayments, PayPalPayments } from "@chambelli/payments";
 import { ReturnService } from "@chambelli/returns";
+import { canadaTaxRate, normalizePostalCode, provinceCode } from "@chambelli/pricing";
 import { config } from "./config.js";
 
 const AddItem = z.object({
@@ -84,6 +85,21 @@ export async function commerceRoutes(app: FastifyInstance) {
     if (b.paymentProvider === PaymentProvider.PAYPAL && !paypal)
       return reply.code(503).send({ error: "PAYPAL_NOT_CONFIGURED" });
 
+    const site = await db.website.findUnique({ where: { id: b.websiteId } });
+    if (!site || !site.active) throw new Error("WEBSITE_NOT_FOUND");
+    // Canada chapter: ships only within Canada, with a valid province and postal code.
+    let taxRatePercent: number | undefined;
+    if (site.market === "CA") {
+      if (b.address.country !== "CA") throw new Error("SHIPPING_COUNTRY_NOT_SUPPORTED");
+      const province = provinceCode(b.address.region);
+      if (!province) throw new Error("INVALID_PROVINCE");
+      const postalCode = normalizePostalCode(b.address.postalCode);
+      if (!postalCode) throw new Error("INVALID_POSTAL_CODE");
+      b.address.region = province;
+      b.address.postalCode = postalCode;
+      taxRatePercent = canadaTaxRate(province, config.canada.gstHstRegistered);
+    }
+
     const summary = await carts.summary(b.cartId);
     let discount = 0;
     let promotionCode: string | undefined;
@@ -99,7 +115,8 @@ export async function commerceRoutes(app: FastifyInstance) {
       update: {},
     });
     const address = await db.address.create({ data: { ...b.address, customerId: customer.id } });
-    // Shipping and tax stay at zero until real quote services are connected (see docs/PART2.md).
+    // Shipping stays at zero (Canadian prices include it). Tax is zero except GST/HST on the
+    // Canada site once registered; US tax still needs a quote service (see docs/PART2.md).
     const order = await orders.createFromCart({
       cartId: b.cartId,
       websiteId: b.websiteId,
@@ -110,6 +127,7 @@ export async function commerceRoutes(app: FastifyInstance) {
       discount,
       shipping: 0,
       tax: 0,
+      taxRatePercent,
     });
     if (order.status !== OrderStatus.PENDING_PAYMENT) throw new Error("ORDER_ALREADY_PAID");
 
