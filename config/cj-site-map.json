@@ -1,0 +1,158 @@
+{
+  "_help": "Which CJ categories feed which website. Edit this file to change the mapping; no code change needed. Guide: docs/CJ-SITE-MAP.md. CJ category list: https://developers.cjdropshipping.com/en/api/api2/api/product.html",
+  "productsPerSite": 30,
+  "sites": [
+    {
+      "slug": "womenstyle",
+      "name": "WomenStyle",
+      "domain": "womenstyle.win",
+      "cjCategories": ["Women's Clothing", "Bags & Shoes"],
+      "terms": ["women dress", "women blouse", "women cardigan", "women handbag", "women heels"]
+    },
+    {
+      "slug": "curated4her",
+      "name": "Curated4Her",
+      "domain": "curated4her.com",
+      "cjCategories": ["Women's Clothing", "Jewelry & Watches"],
+      "terms": ["women set", "women knit top", "women necklace", "women earrings", "women watch"]
+    },
+    {
+      "slug": "neededmen",
+      "name": "Needed.men",
+      "domain": "needed.men",
+      "cjCategories": ["Men's Clothing", "Bags & Shoes"],
+      "terms": ["men shirt", "men jacket", "men sneakers", "men wallet", "men backpack"]
+    },
+    {
+      "slug": "flyhorizons",
+      "name": "FlyHorizons",
+      "domain": "flyhorizons.online",
+      "cjCategories": ["Bags & Shoes", "Phones & Accessories"],
+      "terms": [
+        "travel bag",
+        "luggage organizer",
+        "travel backpack",
+        "travel adapter",
+        "power bank"
+      ]
+    },
+    {
+      "slug": "jewllery",
+      "name": "Maison Aurelia",
+      "domain": "jewllery.store",
+      "cjCategories": ["Jewelry & Watches"],
+      "terms": ["necklace", "earrings", "bracelet", "ring", "watch"]
+    },
+    {
+      "slug": "lensloop",
+      "name": "LensLoop",
+      "domain": "lensloop.site",
+      "cjCategories": ["Jewelry & Watches", "Bags & Shoes"],
+      "terms": ["sunglasses", "polarized sunglasses", "blue light glasses"]
+    },
+    {
+      "slug": "glowsculpt",
+      "name": "GlowSculpt",
+      "domain": "glowsculpt.site",
+      "cjCategories": ["Health, Beauty & Hair"],
+      "terms": ["face roller", "makeup brush set", "facial massager", "nail kit", "skin care tool"]
+    },
+    {
+      "slug": "hairstyle",
+      "name": "Hairstyle Company",
+      "domain": "hairstyle.company",
+      "cjCategories": ["Health, Beauty & Hair"],
+      "terms": ["wig", "hair extension", "hair clip", "hair straightener", "hair dryer brush"]
+    },
+    {
+      "slug": "medicalsupplie",
+      "name": "MedicalSupplie",
+      "domain": "medicalsupplie.com",
+      "cjCategories": ["Health, Beauty & Hair"],
+      "terms": ["massage gun", "knee brace", "posture corrector", "pill organizer", "heating pad"]
+    },
+    {
+      "slug": "petscoolstuff",
+      "name": "PetsCoolStuff",
+      "domain": "petscoolstuff.trade",
+      "cjCategories": ["Pet Supplies"],
+      "terms": ["dog toy", "cat toy", "pet bed", "dog harness", "pet feeder"]
+    },
+    {
+      "slug": "bedbathbuy",
+      "name": "BedBathBuy",
+      "domain": "bedbathbuy.trade",
+      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
+      "terms": ["bedding set", "bath towel", "shower curtain", "bathroom organizer", "pillow"]
+    },
+    {
+      "slug": "homewellnessdeals",
+      "name": "Home Wellness Deals",
+      "domain": "homewellnessdeals.com",
+      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
+      "terms": ["aroma diffuser", "led lamp", "storage box", "kitchen gadget", "wall decor"]
+    },
+    {
+      "slug": "flowerofheaven",
+      "name": "Flower of Heaven",
+      "domain": "flowerofheaven.store",
+      "cjCategories": ["Home, Garden & Furniture"],
+      "terms": [
+        "artificial flowers",
+        "artificial roses",
+        "flower vase",
+        "preserved flower",
+        "plant pot"
+      ]
+    },
+    {
+      "slug": "costumescout",
+      "name": "CostumeScout",
+      "domain": "costumescout.store",
+      "cjCategories": ["Toys, Kids & Babies"],
+      "terms": ["kids costume", "cosplay costume", "party mask", "halloween costume"]
+    },
+    {
+      "slug": "outdoorsports",
+      "name": "Outdoor Sports Fun",
+      "domain": "outdoorsports.fun",
+      "cjCategories": ["Sports & Outdoors"],
+      "terms": ["camping lantern", "hiking backpack", "fishing gear", "yoga mat", "water bottle"]
+    },
+    {
+      "slug": "outdoorhaulers",
+      "name": "OutdoorHaulers",
+      "domain": "outdoorhaulers.site",
+      "cjCategories": ["Sports & Outdoors", "Automobiles & Motorcycles"],
+      "terms": ["bike rack", "roof cargo bag", "tie down strap", "camping chair", "car organizer"]
+    },
+    {
+      "slug": "drivezone",
+      "name": "DriveZone Nexus",
+      "domain": "drivezone.nexus",
+      "cjCategories": ["Automobiles & Motorcycles"],
+      "terms": ["dash cam", "car phone holder", "car charger", "car vacuum", "car led light"]
+    },
+    {
+      "slug": "buybeststore",
+      "name": "BuyBestStore",
+      "domain": "buybeststore.com",
+      "cjCategories": ["Consumer Electronics", "Phones & Accessories", "Computer & Office"],
+      "terms": ["wireless earbuds", "bluetooth speaker", "smart watch", "phone case", "keyboard"]
+    },
+    {
+      "slug": "realskillset",
+      "name": "RealSkillSet",
+      "domain": "realskillset.com",
+      "cjCategories": ["Computer & Office"],
+      "terms": ["laptop stand", "desk organizer", "notebook", "webcam", "ring light"]
+    },
+    {
+      "slug": "businessbuy",
+      "name": "BusinessBuy",
+      "domain": "businessbuy.site",
+      "cjCategories": ["Computer & Office"],
+      "terms": ["label printer", "receipt printer", "office chair cushion", "document organizer"]
+    }
+  ]
+}

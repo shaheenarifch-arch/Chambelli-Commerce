@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { CJConnector, parseCJPrice } from "../packages/cj/src/index.js";
+import { readFileSync } from "node:fs";
+import {
+  CJConnector,
+  parseCJPrice,
+  topCategoryIndex,
+  normalizeCategory,
+  sitesForCategory,
+  type SiteMap,
+} from "../packages/cj/src/index.js";
 
 describe("parseCJPrice", () => {
   it("handles numbers, numeric strings and ranges", () => {
@@ -65,5 +73,69 @@ describe("CJConnector", () => {
     await expect(new CJConnector("tok", "https://cj.test").listProducts()).rejects.toThrow(
       "CJ_API_ERROR: token expired",
     );
+  });
+});
+
+describe("CJ categories and site map", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const tree = [
+    {
+      categoryFirstId: "f1",
+      categoryFirstName: "Pet Supplies",
+      categoryFirstList: [
+        {
+          categorySecondId: "s1",
+          categorySecondName: "Dogs",
+          categorySecondList: [{ categoryId: "t1", categoryName: "Dog Toys" }],
+        },
+      ],
+    },
+    { categoryFirstName: "Home, Garden & Furniture", categoryFirstList: [] },
+  ];
+
+  it("maps every category level to its top-level name", () => {
+    const index = topCategoryIndex(tree);
+    expect(index.get("f1")).toBe("Pet Supplies");
+    expect(index.get("s1")).toBe("Pet Supplies");
+    expect(index.get("t1")).toBe("Pet Supplies");
+  });
+
+  it("matches category names loosely", () => {
+    expect(normalizeCategory("Home, Garden & Furniture")).toBe(
+      normalizeCategory("home garden and furniture"),
+    );
+  });
+
+  it("finds the sites for a category", () => {
+    const map = JSON.parse(readFileSync("config/cj-site-map.json", "utf8")) as SiteMap;
+    expect(sitesForCategory(map, "Pet Supplies").map((s) => s.domain)).toEqual([
+      "petscoolstuff.trade",
+    ]);
+    expect(sitesForCategory(map, "Unknown")).toEqual([]);
+  });
+
+  it("every mapped site is complete and unique", () => {
+    const map = JSON.parse(readFileSync("config/cj-site-map.json", "utf8")) as SiteMap;
+    const slugs = map.sites.map((s) => s.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    for (const s of map.sites) {
+      expect(s.cjCategories.length).toBeGreaterThan(0);
+      expect(s.terms.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("sends search filters to CJ", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ result: true, data: { list: [] } })));
+    vi.stubGlobal("fetch", fetchMock);
+    await new CJConnector("tok", "https://cj.test").listProducts(1, 50, {
+      productNameEn: "dog toy",
+      countryCode: "US",
+    });
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get("productNameEn")).toBe("dog toy");
+    expect(url.searchParams.get("countryCode")).toBe("US");
   });
 });
