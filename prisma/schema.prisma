@@ -425,3 +425,82 @@ model ReturnRequest {
 
   @@index([orderId, status])
 }
+
+/// Amazon listings Chambelli controls. LIVE = on Amazon; PROPOSED/APPROVED/REJECTED = new
+/// listings Chambelli suggests and you approve before they go to Amazon.
+enum AmazonListingState {
+  LIVE
+  PROPOSED
+  APPROVED
+  REJECTED
+}
+
+model AmazonListing {
+  id             String             @id @default(uuid())
+  marketplace    String             @default("US")
+  sellerSku      String
+  asin           String?
+  title          String
+  state          AmazonListingState @default(LIVE)
+  /// Status from the Seller Central report (Active, Inactive, Incomplete...).
+  amazonStatus   String?
+  price          Decimal?           @db.Decimal(12, 2)
+  quantity       Int?
+  /// CJ variant SKU this listing is fulfilled from. Edit it when the automatic match is wrong.
+  cjSku          String?
+  productId      String?
+  bullets        String[]
+  description    String?
+  imageUrls      String[]
+  cjCost         Decimal?           @db.Decimal(12, 2)
+  /// CJ stock in the marketplace's warehouse country at the last check.
+  cjStock        Int?
+  /// Lowest item price that still keeps the target margin after Amazon fees.
+  minPrice       Decimal?           @db.Decimal(12, 2)
+  targetQuantity Int?
+  alerts         String[]
+  lastCheckedAt  DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([marketplace, sellerSku])
+  @@index([state])
+}
+
+/// Amazon orders Chambelli fulfils through CJ ("Order from CJ" in the dashboard).
+enum AmazonOrderStatus {
+  NEW
+  SENT_TO_CJ
+  CJ_FAILED
+  SHIPPED
+  CANCELLED
+}
+
+model AmazonOrder {
+  id            String            @id @default(uuid())
+  marketplace   String            @default("US")
+  amazonOrderId String            @unique
+  purchaseDate  DateTime?
+  recipientName String
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  region        String
+  postalCode    String
+  country       String
+  phone         String?
+  /// [{ sellerSku, cjSku, title, quantity }]
+  items         Json
+  status        AmazonOrderStatus @default(NEW)
+  /// How many times the order was sent to CJ; re-sends use "<amazon id>-R<n>".
+  cjAttempts    Int               @default(0)
+  cjOrderId     String?
+  cjOrderStatus String?
+  cjAmountUsd   Decimal?          @db.Decimal(12, 2)
+  cjError       String?
+  tracking      String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([marketplace, status])
+}
