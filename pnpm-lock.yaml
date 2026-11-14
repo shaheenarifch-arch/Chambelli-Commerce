@@ -73,6 +73,9 @@ importers:
       '@chambelli/payments':
         specifier: workspace:*
         version: link:../../packages/payments
+      '@chambelli/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
       '@chambelli/promotions':
         specifier: workspace:*
         version: link:../../packages/promotions
@@ -128,6 +131,12 @@ importers:
       '@chambelli/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@chambelli/inventory':
+        specifier: workspace:*
+        version: link:../../packages/inventory
+      '@chambelli/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3

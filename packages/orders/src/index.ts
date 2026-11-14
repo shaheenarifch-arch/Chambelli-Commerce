@@ -13,6 +13,8 @@ export interface CreateOrderInput {
   discount?: number;
   shipping?: number;
   tax?: number;
+  /** Percent applied to the discounted subtotal (e.g. 13 for Ontario HST). Overrides `tax`. */
+  taxRatePercent?: number;
 }
 
 export type FinalizeResult =
@@ -73,7 +75,11 @@ export class OrderService {
     subtotal = Math.round(subtotal * 100) / 100;
     const discount = Math.min(input.discount ?? 0, subtotal);
     const shipping = input.shipping ?? 0;
-    const tax = input.tax ?? 0;
+    // A tax rate is applied to today's discounted subtotal; otherwise a fixed tax amount is used.
+    const tax =
+      input.taxRatePercent !== undefined
+        ? Math.round((subtotal - discount) * input.taxRatePercent) / 100
+        : (input.tax ?? 0);
     const total = Math.round((subtotal - discount + shipping + tax) * 100) / 100;
 
     return db.$transaction(async (tx) => {

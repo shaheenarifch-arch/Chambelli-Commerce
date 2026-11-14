@@ -9,6 +9,7 @@ import {
   type CJItem,
   type SiteMap,
 } from "@chambelli/cj";
+import { syncCanada } from "./canada.js";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = Number(process.env.CJ_SYNC_MAX_PAGES ?? 50);
@@ -174,6 +175,8 @@ export async function sync() {
         console.error("Linking CJ products to sites failed", e);
       }
     }
+    // Canada chapter: runs after the main sync, only when CJ_SYNC_CANADA=true.
+    if (process.env.CJ_SYNC_CANADA === "true") await syncCanada(cj);
   } catch (e) {
     await db.syncJob.update({
       where: { id: job.id },

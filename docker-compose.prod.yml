@@ -1,0 +1,63 @@
+# Production stack for the Google Cloud VM (see docs/DEPLOY.md).
+# Secrets live in /etc/chambelli/env, written once by deploy/vm-install.sh.
+# Ports are bound to 127.0.0.1 only; Caddy on the VM is the public front door.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chambelli
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in /etc/chambelli/env}
+      POSTGRES_DB: chambelli
+    volumes: [chambelli_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chambelli"]
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes: [chambelli_redis:/data]
+
+  api:
+    image: chambelli-app:latest
+    build: { context: ., dockerfile: docker/app.Dockerfile }
+    restart: unless-stopped
+    env_file: /etc/chambelli/env
+    environment:
+      DATABASE_URL: postgresql://chambelli:${POSTGRES_PASSWORD}@postgres:5432/chambelli
+      REDIS_URL: redis://redis:6379
+      PORT: "8080"
+      TRUST_PROXY: "true"
+    # Sync the database schema, then start the API.
+    command: ["sh", "-c", "pnpm db:push && pnpm --filter @chambelli/api start"]
+    ports: ["127.0.0.1:8095:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  admin:
+    image: chambelli-app:latest
+    restart: unless-stopped
+    env_file: /etc/chambelli/env
+    environment:
+      # The dashboard talks to the API inside the Docker network.
+      PUBLIC_API_BASE_URL: http://api:8080
+    command: ["pnpm", "--filter", "@chambelli/admin", "start"]
+    ports: ["127.0.0.1:3005:3001"]
+    depends_on: [api]
+
+  worker:
+    image: chambelli-app:latest
+    restart: unless-stopped
+    env_file: /etc/chambelli/env
+    environment:
+      DATABASE_URL: postgresql://chambelli:${POSTGRES_PASSWORD}@postgres:5432/chambelli
+      REDIS_URL: redis://redis:6379
+    command: ["pnpm", "--filter", "@chambelli/worker", "start"]
+    depends_on: [api]
+
+volumes:
+  chambelli_pg: {}
+  chambelli_redis: {}
