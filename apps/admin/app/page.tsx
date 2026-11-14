@@ -213,7 +213,10 @@ export default async function Page() {
                 <th>Site</th>
                 <th>Domain</th>
                 <th>Status</th>
-                <th className="num" title={`Each carousel should have ${MIN_PER_SITE} to ${MAX_PER_SITE} products`}>
+                <th
+                  className="num"
+                  title={`Each carousel should have ${MIN_PER_SITE} to ${MAX_PER_SITE} products`}
+                >
                   Products ({MIN_PER_SITE}–{MAX_PER_SITE})
                 </th>
               </tr>

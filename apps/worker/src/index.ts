@@ -36,6 +36,32 @@ async function loadSiteMap(): Promise<SiteMap | null> {
  * products from its CJ categories that pass its title rules. Existing links are kept;
  * nothing is activated. Sites below minProductsPerSite (30) are logged.
  */
+/**
+ * Re-checks CJ US-warehouse stock for products live on website carousels, so a sold-out
+ * product drops off the carousel by itself (and comes back when CJ restocks).
+ */
+async function refreshSiteStock(cj: CJConnector) {
+  const variants = await db.productVariant.findMany({
+    where: { sku: { endsWith: "-US" }, warehouse: "US", currency: "USD" },
+    include: { product: { include: { supplierProducts: { take: 1 } } } },
+  });
+  let changed = 0;
+  for (const v of variants) {
+    const sp = v.product.supplierProducts[0];
+    if (!sp || v.product.status === ProductStatus.DRAFT) continue;
+    await new Promise((r) => setTimeout(r, 1100)); // CJ allows one request per second
+    const stock = await cj.warehouseStock(sp.supplierProductId, "US").catch(() => null);
+    if (stock === null || stock === v.quantity) continue;
+    await db.productVariant.update({ where: { id: v.id }, data: { quantity: stock } });
+    await db.product.update({
+      where: { id: v.productId },
+      data: { status: stock > 0 ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK },
+    });
+    changed++;
+  }
+  console.log(`Website carousel stock: ${variants.length} checked, ${changed} changed`);
+}
+
 async function linkSites(map: SiteMap) {
   for (const s of map.sites) {
     const site = await db.website.upsert({
@@ -68,7 +94,9 @@ async function linkSites(map: SiteMap) {
     const products = candidates.filter((p) => titleFitsSite(p.title, s)).slice(0, room);
     const min = map.minProductsPerSite ?? 0;
     if (have + products.length < min)
-      console.warn(`${s.domain}: only ${have + products.length} products, below the minimum of ${min}`);
+      console.warn(
+        `${s.domain}: only ${have + products.length} products, below the minimum of ${min}`,
+      );
     if (!products.length) continue;
     await db.productAssignment.createMany({
       data: products.map((p) => ({
@@ -181,6 +209,11 @@ export async function sync() {
         await linkSites(map);
       } catch (e) {
         console.error("Linking CJ products to sites failed", e);
+      }
+      try {
+        await refreshSiteStock(cj);
+      } catch (e) {
+        console.error("Refreshing website carousel stock failed", e);
       }
     }
     // Canada chapter: runs after the main sync, only when CJ_SYNC_CANADA=true.

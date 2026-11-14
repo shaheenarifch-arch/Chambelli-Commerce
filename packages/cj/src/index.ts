@@ -86,7 +86,10 @@ export interface SiteMap {
 }
 
 /** True when a product title passes a site's titleMatch / titleExclude rules. */
-export function titleFitsSite(title: string, site: Pick<SiteMapEntry, "titleMatch" | "titleExclude">): boolean {
+export function titleFitsSite(
+  title: string,
+  site: Pick<SiteMapEntry, "titleMatch" | "titleExclude">,
+): boolean {
   const t = title.toLowerCase();
   if (site.titleExclude?.some((w) => t.includes(w.toLowerCase()))) return false;
   if (site.titleMatch?.length) return site.titleMatch.some((w) => t.includes(w.toLowerCase()));

@@ -10,20 +10,29 @@ Change the mapping there; no code change is needed.
 | **CJ shortlist** (GitHub Actions)    | Searches each site's `terms` in CJ's **USA warehouse**, keeps products inside the site's `cjCategories`, skips brand names, and writes `shortlist/sites/<slug>.csv` for review. |
 | **CJ sync worker** (every six hours) | Labels each synced product with its CJ top-level category, creates a Website row per mapped site, and links up to `productsPerSite` products to each site as **drafts**.        |
 
-Nothing goes live on its own. A linked product stays `DRAFT` (hidden from carousels) until it
-is approved, priced and given stock in the dashboard.
+Nothing goes live on its own. A linked product stays `DRAFT` (hidden from carousels) until you
+approve it on the dashboard's **Website carousels** page. Approving prices it at a 30% margin with
+US shipping included (`SITE_US_SHIPPING_COST`) and sets its stock from CJ's US warehouse. Each
+sync re-checks that stock, so sold-out products drop off the carousel by themselves.
+
+The carousel has left and right arrows (and works with the keyboard's arrow keys), shows up to 50
+products, and hides itself when a site has none approved. The embed code for each site is on the
+same dashboard page.
 
 ShopDress (shopdress.us) keeps its own department plan inside `scripts/cj-shortlist.mjs`.
 
 ## Fields
 
-| Field             | Meaning                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| `productsPerSite` | Products per site (30 = one carousel).                                                                       |
-| `slug`            | Site key used by the widget (`data-site`).                                                                   |
-| `domain`          | The site's domain.                                                                                           |
-| `cjCategories`    | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter. |
-| `terms`           | Search words used for the shortlist.                                                                         |
+| Field                | Meaning                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `productsPerSite`    | Most products per site carousel (50).                                                                        |
+| `minProductsPerSite` | Fewest products a site should have (30); the dashboard flags sites below it.                                 |
+| `slug`               | Site key used by the widget (`data-site`).                                                                   |
+| `domain`             | The site's domain.                                                                                           |
+| `cjCategories`       | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter. |
+| `terms`              | Search words used for the shortlist.                                                                         |
+| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safes, lock boxes, vaults).     |
+| `titleExclude`       | Optional. Never link a product whose title contains one of these words (e.g. no prescription items).         |
 
 ## Running the shortlist
 

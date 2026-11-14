@@ -7,102 +7,49 @@
       "slug": "shopdress",
       "name": "ShopDress",
       "domain": "shopdress.us",
-      "cjCategories": [
-        "Women's Clothing",
-        "Men's Clothing",
-        "Toys, Kids & Babies"
-      ],
-      "terms": [
-        "women dress",
-        "women jeans",
-        "men shirt",
-        "men hoodie",
-        "kids clothing set"
-      ]
+      "cjCategories": ["Women's Clothing", "Men's Clothing", "Toys, Kids & Babies"],
+      "terms": ["women dress", "women jeans", "men shirt", "men hoodie", "kids clothing set"]
     },
     {
       "slug": "womenstyle",
       "name": "WomenStyle",
       "domain": "womenstyle.win",
-      "cjCategories": [
-        "Women's Clothing",
-        "Bags & Shoes"
-      ],
-      "terms": [
-        "women dress",
-        "women blouse",
-        "women cardigan",
-        "women handbag",
-        "women heels"
-      ]
+      "cjCategories": ["Women's Clothing", "Bags & Shoes"],
+      "terms": ["women dress", "women blouse", "women cardigan", "women handbag", "women heels"]
     },
     {
       "slug": "curated4her",
       "name": "Curated4Her",
       "domain": "curated4her.com",
-      "cjCategories": [
-        "Women's Clothing",
-        "Jewelry & Watches"
-      ],
-      "terms": [
-        "women set",
-        "women knit top",
-        "women necklace",
-        "women earrings",
-        "women watch"
-      ]
+      "cjCategories": ["Women's Clothing", "Jewelry & Watches"],
+      "terms": ["women set", "women knit top", "women necklace", "women earrings", "women watch"]
     },
     {
       "slug": "glowsculpt",
       "name": "GlowSculpt",
       "domain": "glowsculpt.site",
-      "cjCategories": [
-        "Health, Beauty & Hair"
-      ],
-      "terms": [
-        "face roller",
-        "makeup brush set",
-        "facial massager",
-        "nail kit",
-        "skin care tool"
-      ]
+      "cjCategories": ["Health, Beauty & Hair"],
+      "terms": ["face roller", "makeup brush set", "facial massager", "nail kit", "skin care tool"]
     },
     {
       "slug": "hairstyle",
       "name": "Hairstyle Company",
       "domain": "hairstyle.company",
-      "cjCategories": [
-        "Health, Beauty & Hair"
-      ],
-      "terms": [
-        "wig",
-        "hair extension",
-        "hair clip",
-        "hair straightener",
-        "hair dryer brush"
-      ]
+      "cjCategories": ["Health, Beauty & Hair"],
+      "terms": ["wig", "hair extension", "hair clip", "hair straightener", "hair dryer brush"]
     },
     {
       "slug": "lensloop",
       "name": "LensLoop",
       "domain": "lensloop.site",
-      "cjCategories": [
-        "Jewelry & Watches",
-        "Bags & Shoes"
-      ],
-      "terms": [
-        "sunglasses",
-        "polarized sunglasses",
-        "blue light glasses"
-      ]
+      "cjCategories": ["Jewelry & Watches", "Bags & Shoes"],
+      "terms": ["sunglasses", "polarized sunglasses", "blue light glasses"]
     },
     {
       "slug": "flowerofheaven",
       "name": "Flower of Heaven",
       "domain": "flowerofheaven.store",
-      "cjCategories": [
-        "Home, Garden & Furniture"
-      ],
+      "cjCategories": ["Home, Garden & Furniture"],
       "terms": [
         "artificial flowers",
         "artificial roses",
@@ -115,56 +62,28 @@
       "slug": "homewellnessdeals",
       "name": "Home Wellness Deals",
       "domain": "homewellnessdeals.com",
-      "cjCategories": [
-        "Home, Garden & Furniture",
-        "Home Improvement"
-      ],
-      "terms": [
-        "aroma diffuser",
-        "led lamp",
-        "storage box",
-        "kitchen gadget",
-        "wall decor"
-      ]
+      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
+      "terms": ["aroma diffuser", "led lamp", "storage box", "kitchen gadget", "wall decor"]
     },
     {
       "slug": "petscoolstuff",
       "name": "PetsCoolStuff",
       "domain": "petscoolstuff.trade",
-      "cjCategories": [
-        "Pet Supplies"
-      ],
-      "terms": [
-        "dog toy",
-        "cat toy",
-        "pet bed",
-        "dog harness",
-        "pet feeder"
-      ]
+      "cjCategories": ["Pet Supplies"],
+      "terms": ["dog toy", "cat toy", "pet bed", "dog harness", "pet feeder"]
     },
     {
       "slug": "outdoorsports",
       "name": "Outdoor Sports Fun",
       "domain": "outdoorsports.fun",
-      "cjCategories": [
-        "Sports & Outdoors"
-      ],
-      "terms": [
-        "camping lantern",
-        "hiking backpack",
-        "fishing gear",
-        "yoga mat",
-        "water bottle"
-      ]
+      "cjCategories": ["Sports & Outdoors"],
+      "terms": ["camping lantern", "hiking backpack", "fishing gear", "yoga mat", "water bottle"]
     },
     {
       "slug": "flyhorizons",
       "name": "FlyHorizons",
       "domain": "flyhorizons.online",
-      "cjCategories": [
-        "Bags & Shoes",
-        "Phones & Accessories"
-      ],
+      "cjCategories": ["Bags & Shoes", "Phones & Accessories"],
       "terms": [
         "travel bag",
         "luggage organizer",
@@ -177,9 +96,7 @@
       "slug": "medicalsupplie",
       "name": "MedicalSupplie",
       "domain": "medicalsupplie.com",
-      "cjCategories": [
-        "Health, Beauty & Hair"
-      ],
+      "cjCategories": ["Health, Beauty & Hair"],
       "terms": [
         "first aid kit",
         "knee brace",
@@ -204,23 +121,13 @@
         "blood pressure",
         "pulse oximeter"
       ],
-      "titleExclude": [
-        "prescription",
-        "syringe",
-        "needle",
-        "catheter",
-        "injection",
-        "contact lens"
-      ]
+      "titleExclude": ["prescription", "syringe", "needle", "catheter", "injection", "contact lens"]
     },
     {
       "slug": "ticktes",
       "name": "Ticktes",
       "domain": "ticktes.online",
-      "cjCategories": [
-        "Bags & Shoes",
-        "Phones & Accessories"
-      ],
+      "cjCategories": ["Bags & Shoes", "Phones & Accessories"],
       "terms": [
         "crossbody bag",
         "travel wallet",
@@ -233,10 +140,7 @@
       "slug": "bostondaily",
       "name": "Boston Daily",
       "domain": "bostondaily.us",
-      "cjCategories": [
-        "Home, Garden & Furniture",
-        "Consumer Electronics"
-      ],
+      "cjCategories": ["Home, Garden & Furniture", "Consumer Electronics"],
       "terms": [
         "kitchen gadget",
         "led desk lamp",
@@ -249,26 +153,9 @@
       "slug": "firearmsafety",
       "name": "FirearmSafety",
       "domain": "firearmsafety.us",
-      "cjCategories": [
-        "Home Improvement",
-        "Home, Garden & Furniture"
-      ],
-      "terms": [
-        "gun safe",
-        "lock box",
-        "security safe",
-        "key lock box",
-        "hidden safe"
-      ],
-      "titleMatch": [
-        "safe",
-        "lock box",
-        "lockbox",
-        "vault",
-        "key box",
-        "security box",
-        "cash box"
-      ],
+      "cjCategories": ["Home Improvement", "Home, Garden & Furniture"],
+      "terms": ["gun safe", "lock box", "security safe", "key lock box", "hidden safe"],
+      "titleMatch": ["safe", "lock box", "lockbox", "vault", "key box", "security box", "cash box"],
       "titleExclude": [
         "holster",
         "ammo",

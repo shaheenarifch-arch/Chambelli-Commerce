@@ -202,7 +202,10 @@ if (ONLY !== "shopdress") {
         // Site title rules, e.g. only safes and vaults on firearmsafety.us.
         const lower = name.toLowerCase();
         if (site.titleExclude?.some((w) => lower.includes(w.toLowerCase()))) continue;
-        if (site.titleMatch?.length && !site.titleMatch.some((w) => lower.includes(w.toLowerCase())))
+        if (
+          site.titleMatch?.length &&
+          !site.titleMatch.some((w) => lower.includes(w.toLowerCase()))
+        )
           continue;
         const top = topOf.get(p.categoryId);
         // Keep only products inside the site's CJ categories (unknown category: keep for review).

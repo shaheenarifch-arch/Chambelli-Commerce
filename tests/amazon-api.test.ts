@@ -80,4 +80,15 @@ describe("Amazon control API", () => {
     expect(res.json().error).toBe("ALREADY_SENT_TO_CJ");
     expect(db.amazonOrder.update).not.toHaveBeenCalled();
   });
+
+  it("won't approve website products until US shipping cost is set", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/admin/sites/womenstyle/approve",
+      headers: { "x-admin-key": KEY },
+      payload: {},
+    });
+    expect(res.statusCode).toBe(409);
+    expect(res.json().error).toBe("SITE_SHIPPING_COST_NOT_SET");
+  });
 });

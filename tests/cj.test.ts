@@ -139,3 +139,47 @@ describe("CJ categories and site map", () => {
     expect(url.searchParams.get("countryCode")).toBe("US");
   });
 });
+
+describe("website carousel site map", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { titleFitsSite } = await import("../packages/cj/src/index.js");
+  const map = JSON.parse(
+    readFileSync(new URL("../config/cj-site-map.json", import.meta.url), "utf8"),
+  );
+
+  it("covers the 15 chosen sites with 30 to 50 products each", () => {
+    expect(map.productsPerSite).toBe(50);
+    expect(map.minProductsPerSite).toBe(30);
+    const domains = map.sites.map((s: { domain: string }) => s.domain);
+    expect(domains).toHaveLength(15);
+    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(15);
+    for (const d of [
+      "shopdress.us",
+      "firearmsafety.us",
+      "medicalsupplie.com",
+      "bostondaily.us",
+      "ticktes.online",
+    ])
+      expect(domains).toContain(d);
+  });
+
+  it("keeps firearmsafety.us to safes and vaults", () => {
+    const site = map.sites.find((s: { slug: string }) => s.slug === "firearmsafety");
+    expect(titleFitsSite("Biometric Gun Safe for Pistols, Quick Access", site)).toBe(true);
+    expect(titleFitsSite("Fireproof Document Lock Box with Key", site)).toBe(true);
+    expect(titleFitsSite("Tactical Leather Holster", site)).toBe(false);
+    expect(titleFitsSite("LED Desk Lamp", site)).toBe(false);
+  });
+
+  it("keeps medicalsupplie.com to everyday non-prescription supplies", () => {
+    const site = map.sites.find((s: { slug: string }) => s.slug === "medicalsupplie");
+    expect(titleFitsSite("Adjustable Knee Brace Support", site)).toBe(true);
+    expect(titleFitsSite("Weekly Pill Organizer 7 Day", site)).toBe(true);
+    expect(titleFitsSite("Disposable Syringe Needle Set", site)).toBe(false);
+    expect(titleFitsSite("Makeup Brush Set", site)).toBe(false);
+  });
+
+  it("lets sites without title rules take anything in their categories", () => {
+    expect(titleFitsSite("Anything", {})).toBe(true);
+  });
+});
