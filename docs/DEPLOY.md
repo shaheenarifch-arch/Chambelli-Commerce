@@ -12,7 +12,7 @@ behind the VM's existing Caddy web server. Nothing else on the VM is changed.
 | Secrets             | `/etc/chambelli/env` (root only)                        |
 | Caddy site          | `/etc/caddy/conf.d/chambelli.caddy`                     |
 
-Containers: `postgres`, `redis`, `api` (127.0.0.1:8095), `admin` (127.0.0.1:3005) and
+Containers: `postgres`, `redis`, `api` (127.0.0.1:8098), `admin` (127.0.0.1:3005) and
 `worker` (CJ sync every six hours). Bhaddru keeps port 8080.
 
 ## 1. DNS (once)

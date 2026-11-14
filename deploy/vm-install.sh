@@ -89,7 +89,7 @@ $DOMAIN {
 	encode gzip
 	@api path /v1/* /widget.js /ca /health /health/*
 	handle @api {
-		reverse_proxy 127.0.0.1:8095
+		reverse_proxy 127.0.0.1:8098
 	}
 	handle {
 		basic_auth {
@@ -105,13 +105,13 @@ systemctl reload caddy || systemctl restart caddy
 # 6. Health check
 echo "==> Waiting for the API"
 for i in $(seq 1 60); do
-	if curl -fsS http://127.0.0.1:8095/health >/dev/null 2>&1; then
+	if curl -fsS http://127.0.0.1:8098/health >/dev/null 2>&1; then
 		echo "API is up."
 		break
 	fi
 	sleep 5
 done
-curl -fsS http://127.0.0.1:8095/health >/dev/null 2>&1 || { echo "API did not start. Logs: docker compose -f $APP_DIR/docker-compose.prod.yml logs api" >&2; exit 1; }
+curl -fsS http://127.0.0.1:8098/health >/dev/null 2>&1 || { echo "API did not start. Logs: docker compose -f $APP_DIR/docker-compose.prod.yml logs api" >&2; exit 1; }
 
 cat <<EOF
 
