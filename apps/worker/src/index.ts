@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { db, SupplierType, ProductStatus, Prisma } from "@chambelli/database";
 import { CJConnector, parseCJPrice, type CJItem } from "@chambelli/cj";
 import { syncCanada } from "./canada.js";
+import { checkAmazonListings } from "./amazon.js";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = Number(process.env.CJ_SYNC_MAX_PAGES ?? 50);
@@ -103,6 +104,8 @@ export async function sync() {
 }
 
 cron.schedule("0 */6 * * *", () => void sync());
+// Amazon US/CA/MX: re-check CJ stock and cost for live listings every 6 hours, after the sync.
+cron.schedule("30 */6 * * *", () => void checkAmazonListings());
 void sync();
 
 const shutdown = () => void db.$disconnect().finally(() => process.exit(0));

@@ -223,7 +223,9 @@ export class CJConnector {
 
   /** A CJ variant's cost (USD), name and image, or null when the SKU is unknown. */
   async variantBySku(sku: string): Promise<CJVariantInfo | null> {
-    const data = await this.get(`/product/variant/query?${new URLSearchParams({ variantSku: sku })}`);
+    const data = await this.get(
+      `/product/variant/query?${new URLSearchParams({ variantSku: sku })}`,
+    );
     return firstVariant(data);
   }
 

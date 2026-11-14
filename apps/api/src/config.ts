@@ -16,6 +16,11 @@ export const config = {
   canada: {
     gstHstRegistered: process.env.CA_GST_HST_REGISTERED === "true",
   },
+  /** CJ Dropshipping, used by the Amazon control screen for stock checks and CJ orders. */
+  cj: {
+    accessToken: process.env.CJ_ACCESS_TOKEN ?? "",
+    baseUrl: process.env.CJ_API_BASE_URL ?? "",
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",

@@ -55,12 +55,18 @@ importers:
 
   apps/api:
     dependencies:
+      '@chambelli/amazon':
+        specifier: workspace:*
+        version: link:../../packages/amazon
       '@chambelli/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
       '@chambelli/cart':
         specifier: workspace:*
         version: link:../../packages/cart
+      '@chambelli/cj':
+        specifier: workspace:*
+        version: link:../../packages/cj
       '@chambelli/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -122,6 +128,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@chambelli/amazon':
+        specifier: workspace:*
+        version: link:../../packages/amazon
       '@chambelli/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog

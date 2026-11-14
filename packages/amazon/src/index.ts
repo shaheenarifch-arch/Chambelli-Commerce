@@ -19,7 +19,8 @@ export * from "./orders.js";
 
 const CJ_DELAY_MS = 1100; // CJ allows one request per second
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const n = (v: Prisma.Decimal | null | undefined) => (v === null || v === undefined ? null : Number(v));
+const n = (v: Prisma.Decimal | null | undefined) =>
+  v === null || v === undefined ? null : Number(v);
 
 export class AmazonService {
   constructor(private delayMs = CJ_DELAY_MS) {}
@@ -42,7 +43,12 @@ export class AmazonService {
       if (existing) await db.amazonListing.update({ where, data });
       else {
         await db.amazonListing.create({
-          data: { ...data, marketplace, sellerSku: r.sellerSku, cjSku: cjSkuFromSellerSku(r.sellerSku) },
+          data: {
+            ...data,
+            marketplace,
+            sellerSku: r.sellerSku,
+            cjSku: cjSkuFromSellerSku(r.sellerSku),
+          },
         });
         created++;
       }
@@ -53,7 +59,11 @@ export class AmazonService {
   /** Checks CJ stock and cost for live listings and records what Amazon should show. */
   async checkListings(cj: CJConnector, s: AmazonSettings, onlyId?: string) {
     const listings = await db.amazonListing.findMany({
-      where: { marketplace: s.marketplace, state: AmazonListingState.LIVE, ...(onlyId ? { id: onlyId } : {}) },
+      where: {
+        marketplace: s.marketplace,
+        state: AmazonListingState.LIVE,
+        ...(onlyId ? { id: onlyId } : {}),
+      },
     });
     let checked = 0;
     let failed = 0;
@@ -115,16 +125,27 @@ export class AmazonService {
         const product = variant.pid ? await cj.productByPid(variant.pid) : null;
         const plan = planListing({ price: null, cjSku }, { stock, cost: variant.cost }, s);
         const title = cleanTitle(
-          product?.title ? `${product.title}${variant.name ? `, ${variant.name}` : ""}` : variant.name,
+          product?.title
+            ? `${product.title}${variant.name ? `, ${variant.name}` : ""}`
+            : variant.name,
         );
-        const images = product?.images.length ? product.images : variant.image ? [variant.image] : [];
+        const images = product?.images.length
+          ? product.images
+          : variant.image
+            ? [variant.image]
+            : [];
         const sellerSku = `LC-${cjSku}`;
         const data = {
           title,
           state: AmazonListingState.PROPOSED,
           cjSku,
           bullets: bulletsFromDescription(product?.description),
-          description: product?.description?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 2000) ?? null,
+          description:
+            product?.description
+              ?.replace(/<[^>]+>/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 2000) ?? null,
           imageUrls: images,
           cjCost: variant.cost,
           cjStock: stock,
@@ -168,13 +189,15 @@ export class AmazonService {
   ) {
     const l = await db.amazonListing.findUniqueOrThrow({ where: { id } });
     const data: Prisma.AmazonListingUpdateInput = {};
-    if (patch.cjSku !== undefined) data.cjSku = patch.cjSku ? patch.cjSku.trim().toUpperCase() : null;
+    if (patch.cjSku !== undefined)
+      data.cjSku = patch.cjSku ? patch.cjSku.trim().toUpperCase() : null;
     if (l.state !== AmazonListingState.LIVE) {
       if (patch.title !== undefined) data.title = cleanTitle(patch.title);
       if (patch.bullets !== undefined) data.bullets = patch.bullets.slice(0, 5);
       if (patch.price !== undefined) {
         const min = n(l.minPrice);
-        if (patch.price !== null && min !== null && patch.price < min) throw new Error("PRICE_BELOW_MARGIN");
+        if (patch.price !== null && min !== null && patch.price < min)
+          throw new Error("PRICE_BELOW_MARGIN");
         data.price = patch.price;
       }
     }
@@ -191,8 +214,10 @@ export class AmazonService {
       rows.map((r) => {
         const price = n(r.price);
         const min = n(r.minPrice);
-        const newPrice = min !== null && (price === null || price < min) ? priceEnding99(min) : null;
-        const quantity = r.targetQuantity !== null && r.targetQuantity !== r.quantity ? r.targetQuantity : null;
+        const newPrice =
+          min !== null && (price === null || price < min) ? priceEnding99(min) : null;
+        const quantity =
+          r.targetQuantity !== null && r.targetQuantity !== r.quantity ? r.targetQuantity : null;
         return { sellerSku: r.sellerSku, newPrice, quantity };
       }),
     );
@@ -222,12 +247,17 @@ export class AmazonService {
     const orders = parseUnshippedOrdersReport(text);
     let created = 0;
     for (const o of orders) {
-      const existing = await db.amazonOrder.findUnique({ where: { amazonOrderId: o.amazonOrderId } });
+      const existing = await db.amazonOrder.findUnique({
+        where: { amazonOrderId: o.amazonOrderId },
+      });
       const data = { ...o, items: o.items as unknown as Prisma.InputJsonValue, marketplace };
       if (!existing) {
         await db.amazonOrder.create({ data });
         created++;
-      } else if (existing.status === AmazonOrderStatus.NEW || existing.status === AmazonOrderStatus.CJ_FAILED) {
+      } else if (
+        existing.status === AmazonOrderStatus.NEW ||
+        existing.status === AmazonOrderStatus.CJ_FAILED
+      ) {
         await db.amazonOrder.update({ where: { id: existing.id }, data });
       }
     }
@@ -259,7 +289,10 @@ export class AmazonService {
       payload = cjOrderPayload({ ...o, items: fixed, attempt }, s);
     } catch (e) {
       const message = e instanceof Error ? e.message : "unknown";
-      await db.amazonOrder.update({ where: { id: o.id }, data: { status: AmazonOrderStatus.CJ_FAILED, cjError: message } });
+      await db.amazonOrder.update({
+        where: { id: o.id },
+        data: { status: AmazonOrderStatus.CJ_FAILED, cjError: message },
+      });
       throw e;
     }
     try {
@@ -279,7 +312,11 @@ export class AmazonService {
       const message = e instanceof Error ? e.message : "unknown";
       await db.amazonOrder.update({
         where: { id: o.id },
-        data: { status: AmazonOrderStatus.CJ_FAILED, cjAttempts: attempt + 1, cjError: message.slice(0, 500) },
+        data: {
+          status: AmazonOrderStatus.CJ_FAILED,
+          cjAttempts: attempt + 1,
+          cjError: message.slice(0, 500),
+        },
       });
       throw new Error("CJ_ORDER_FAILED");
     }
@@ -307,4 +344,3 @@ export class AmazonService {
     return { listings, orders, alerts };
   }
 }
-

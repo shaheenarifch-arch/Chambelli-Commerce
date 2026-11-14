@@ -30,7 +30,10 @@ export interface ReportOrder {
  * One row per item; rows with the same order-id are joined into one order.
  */
 export function parseUnshippedOrdersReport(text: string): ReportOrder[] {
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim() !== "");
+  const lines = text
+    .replace(/^﻿/, "")
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== "");
   if (lines.length < 2) return [];
   const header = lines[0].split("\t").map((h) => h.trim().toLowerCase());
   const idx = (n: string) => header.indexOf(n);
@@ -52,7 +55,8 @@ export function parseUnshippedOrdersReport(text: string): ReportOrder[] {
         purchaseDate: date && !Number.isNaN(Date.parse(date)) ? new Date(date) : null,
         recipientName: get("recipient-name") || get("buyer-name"),
         addressLine1: get("ship-address-1"),
-        addressLine2: [get("ship-address-2"), get("ship-address-3")].filter(Boolean).join(", ") || null,
+        addressLine2:
+          [get("ship-address-2"), get("ship-address-3")].filter(Boolean).join(", ") || null,
         city: get("ship-city"),
         region: get("ship-state"),
         postalCode: get("ship-postal-code"),

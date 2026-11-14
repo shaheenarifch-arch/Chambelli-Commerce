@@ -78,7 +78,10 @@ export interface ReportRow {
  * Columns are found by name, so Amazon reordering them does not matter.
  */
 export function parseAllListingsReport(text: string): ReportRow[] {
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim() !== "");
+  const lines = text
+    .replace(/^﻿/, "")
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== "");
   if (lines.length < 2) return [];
   const header = lines[0].split("\t").map((h) => h.trim().toLowerCase());
   const col = (...names: string[]) => names.map((n) => header.indexOf(n)).find((i) => i >= 0) ?? -1;
@@ -163,7 +166,8 @@ export function planListing(
   s: AmazonSettings,
 ): ListingPlan {
   const alerts: ListingAlert[] = [];
-  if (!current.cjSku) return { targetQuantity: null, minPrice: null, newPrice: null, alerts: ["CJ_SKU_MISSING"] };
+  if (!current.cjSku)
+    return { targetQuantity: null, minPrice: null, newPrice: null, alerts: ["CJ_SKU_MISSING"] };
   if (cj.stock === null && cj.cost === null)
     return { targetQuantity: null, minPrice: null, newPrice: null, alerts: ["CJ_SKU_NOT_FOUND"] };
 
@@ -192,7 +196,11 @@ export function planListing(
 }
 
 const tsvCell = (v: unknown) =>
-  v === null || v === undefined ? "" : String(v).replace(/[\t\r\n]+/g, " ").trim();
+  v === null || v === undefined
+    ? ""
+    : String(v)
+        .replace(/[\t\r\n]+/g, " ")
+        .trim();
 const tsv = (rows: unknown[][]) => rows.map((r) => r.map(tsvCell).join("\t")).join("\n") + "\n";
 
 /**
