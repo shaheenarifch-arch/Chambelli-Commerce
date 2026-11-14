@@ -16,6 +16,18 @@ export const config = {
   canada: {
     gstHstRegistered: process.env.CA_GST_HST_REGISTERED === "true",
   },
+  /** CJ Dropshipping, used to check US stock when approving website products. */
+  cj: {
+    accessToken: process.env.CJ_ACCESS_TOKEN ?? "",
+    baseUrl: process.env.CJ_API_BASE_URL ?? "",
+  },
+  /** Website carousels: CJ US shipping per unit (USD), built into every site price. */
+  sites: {
+    usShippingCost:
+      process.env.SITE_US_SHIPPING_COST && Number(process.env.SITE_US_SHIPPING_COST) >= 0
+        ? Number(process.env.SITE_US_SHIPPING_COST)
+        : null,
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",

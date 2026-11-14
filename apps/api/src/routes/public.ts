@@ -44,7 +44,7 @@ export async function publicRoutes(app: FastifyInstance) {
       .object({ site: z.string().max(100), placement: z.string().max(100) })
       .parse(req.params);
     const q = z
-      .object({ limit: z.coerce.number().int().min(1).max(30).default(30) })
+      .object({ limit: z.coerce.number().int().min(1).max(50).default(50) })
       .parse(req.query);
     const out = await feeds.get(p.site, p.placement, q.limit);
     if (!out) return reply.code(404).send({ error: "SITE_NOT_FOUND" });

@@ -61,6 +61,9 @@ importers:
       '@chambelli/cart':
         specifier: workspace:*
         version: link:../../packages/cart
+      '@chambelli/cj':
+        specifier: workspace:*
+        version: link:../../packages/cj
       '@chambelli/database':
         specifier: workspace:*
         version: link:../../packages/database

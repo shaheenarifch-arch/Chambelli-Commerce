@@ -72,10 +72,25 @@ export interface SiteMapEntry {
   domain: string;
   cjCategories: string[];
   terms: string[];
+  /** When set, a product title must contain one of these words (e.g. "safe" for firearmsafety.us). */
+  titleMatch?: string[];
+  /** Never link a product whose title contains one of these words. */
+  titleExclude?: string[];
 }
 export interface SiteMap {
+  /** Most products per site carousel (50). */
   productsPerSite: number;
+  /** Fewest products a site should have; the dashboard flags sites below it (30). */
+  minProductsPerSite?: number;
   sites: SiteMapEntry[];
+}
+
+/** True when a product title passes a site's titleMatch / titleExclude rules. */
+export function titleFitsSite(title: string, site: Pick<SiteMapEntry, "titleMatch" | "titleExclude">): boolean {
+  const t = title.toLowerCase();
+  if (site.titleExclude?.some((w) => t.includes(w.toLowerCase()))) return false;
+  if (site.titleMatch?.length) return site.titleMatch.some((w) => t.includes(w.toLowerCase()));
+  return true;
 }
 
 /** Sites that a product in this CJ top-level category should be offered to. */

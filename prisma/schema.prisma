@@ -164,7 +164,7 @@ model CarouselPlacement {
   websiteId String
   key       String
   title     String  @default("Recommended Products")
-  limit     Int     @default(30)
+  limit     Int     @default(50)
   active    Boolean @default(true)
   website   Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 

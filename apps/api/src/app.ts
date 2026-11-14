@@ -8,6 +8,7 @@ import { publicRoutes } from "./routes/public.js";
 import { adminRoutes } from "./routes/admin.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 import { commerceRoutes } from "./commerceRoutes.js";
+import { siteRoutes } from "./routes/sites.js";
 
 export async function buildApp(opts: FastifyServerOptions = {}) {
   const app = Fastify({
@@ -30,5 +31,6 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(commerceRoutes);
   await app.register(adminRoutes);
   await app.register(webhookRoutes);
+  await app.register(siteRoutes);
   return app;
 }

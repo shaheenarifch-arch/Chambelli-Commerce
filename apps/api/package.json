@@ -24,7 +24,8 @@
     "@chambelli/returns": "workspace:*",
     "@fastify/rate-limit": "^10.1.1",
     "@chambelli/reporting": "workspace:*",
-    "@chambelli/pricing": "workspace:*"
+    "@chambelli/pricing": "workspace:*",
+    "@chambelli/cj": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

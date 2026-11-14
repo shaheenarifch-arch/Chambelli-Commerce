@@ -199,6 +199,11 @@ if (ONLY !== "shopdress") {
         const cost = price(p.sellPrice);
         if (!p.pid || picked.has(p.pid) || !name || !p.productImage || !cost || BRANDS.test(name))
           continue;
+        // Site title rules, e.g. only safes and vaults on firearmsafety.us.
+        const lower = name.toLowerCase();
+        if (site.titleExclude?.some((w) => lower.includes(w.toLowerCase()))) continue;
+        if (site.titleMatch?.length && !site.titleMatch.some((w) => lower.includes(w.toLowerCase())))
+          continue;
         const top = topOf.get(p.categoryId);
         // Keep only products inside the site's CJ categories (unknown category: keep for review).
         if (top && !want.has(top)) continue;
@@ -219,7 +224,10 @@ if (ONLY !== "shopdress") {
       }
     }
     writeCsv(`shortlist/sites/${site.slug}.csv`, siteRows);
-    summary.push(`${site.domain}: ${siteRows.length}/${target}`);
+    const min = map.minProductsPerSite ?? 0;
+    summary.push(
+      `${site.domain}: ${siteRows.length}/${target}${siteRows.length < min ? ` (below the minimum of ${min})` : ""}`,
+    );
     console.log(summary.at(-1));
   }
   writeFileSync("shortlist/sites/SUMMARY.txt", summary.join("\n") + "\n");

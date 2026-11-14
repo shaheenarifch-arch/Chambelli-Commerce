@@ -6,6 +6,7 @@ import {
   parseCJPrice,
   topCategoryIndex,
   normalizeCategory,
+  titleFitsSite,
   type CJItem,
   type SiteMap,
 } from "@chambelli/cj";
@@ -30,8 +31,9 @@ async function loadSiteMap(): Promise<SiteMap | null> {
 }
 
 /**
- * Make sure every mapped site has a Website row, then link up to productsPerSite
- * products from its CJ categories. Existing links are kept; nothing is activated.
+ * Make sure every mapped site has a Website row, then link up to productsPerSite (50)
+ * products from its CJ categories that pass its title rules. Existing links are kept;
+ * nothing is activated. Sites below minProductsPerSite (30) are logged.
  */
 async function linkSites(map: SiteMap) {
   for (const s of map.sites) {
@@ -51,16 +53,21 @@ async function linkSites(map: SiteMap) {
     });
     const room = map.productsPerSite - have;
     if (room <= 0) continue;
-    const products = await db.product.findMany({
+    // Fetch extra so the titleMatch/titleExclude rules can still fill the room.
+    const candidates = await db.product.findMany({
       where: {
         supplierType: SupplierType.CJ,
         category: { in: s.cjCategories },
         assignments: { none: { websiteId: site.id, placement: SITE_PLACEMENT } },
       },
       orderBy: { updatedAt: "desc" },
-      take: room,
-      select: { id: true },
+      take: s.titleMatch?.length || s.titleExclude?.length ? room * 20 : room,
+      select: { id: true, title: true },
     });
+    const products = candidates.filter((p) => titleFitsSite(p.title, s)).slice(0, room);
+    const min = map.minProductsPerSite ?? 0;
+    if (have + products.length < min)
+      console.warn(`${s.domain}: only ${have + products.length} products, below the minimum of ${min}`);
     if (!products.length) continue;
     await db.productAssignment.createMany({
       data: products.map((p) => ({

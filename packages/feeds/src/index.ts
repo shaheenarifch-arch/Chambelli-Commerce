@@ -1,7 +1,7 @@
 import { Redis } from "ioredis";
 import { db, ProductStatus } from "@chambelli/database";
 
-const MAX_PRODUCTS = 30;
+const MAX_PRODUCTS = 50;
 const CACHE_SECONDS = 600;
 
 const redis = process.env.REDIS_URL
