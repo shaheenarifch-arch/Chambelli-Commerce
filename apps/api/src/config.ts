@@ -16,7 +16,7 @@ export const config = {
   canada: {
     gstHstRegistered: process.env.CA_GST_HST_REGISTERED === "true",
   },
-  /** CJ Dropshipping, used to check US stock when approving website products. */
+  /** CJ Dropshipping: Amazon stock checks and CJ orders, and US stock for website products. */
   cj: {
     accessToken: process.env.CJ_ACCESS_TOKEN ?? "",
     baseUrl: process.env.CJ_API_BASE_URL ?? "",

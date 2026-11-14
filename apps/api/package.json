@@ -25,6 +25,7 @@
     "@fastify/rate-limit": "^10.1.1",
     "@chambelli/reporting": "workspace:*",
     "@chambelli/pricing": "workspace:*",
+    "@chambelli/amazon": "workspace:*",
     "@chambelli/cj": "workspace:*"
   },
   "devDependencies": {

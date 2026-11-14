@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata = {
@@ -14,6 +15,10 @@ export default function Layout({ children }: { children: ReactNode }) {
           <div className="brand">
             <span className="logo">C</span>
             <strong>Chambelli Commerce Hub</strong>
+            <nav className="topnav">
+              <Link href="/">Overview</Link>
+              <Link href="/amazon">Amazon US · CA · MX</Link>
+            </nav>
           </div>
           <span className="env">
             {process.env.NODE_ENV === "production" ? "Production" : "Development"}
