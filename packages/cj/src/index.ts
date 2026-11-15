@@ -11,6 +11,16 @@ const CJItem = z.object({
 });
 export type CJItem = z.infer<typeof CJItem>;
 
+// One row of CJ's My Product List (the "Added Products" page in the CJ dashboard).
+const MyProduct = z.object({
+  productId: z.string(),
+  sku: z.string().nullish(),
+  nameEn: z.string().nullish(),
+  productName: z.string().nullish(),
+  bigImage: z.string().nullish(),
+  sellPrice: z.union([z.string(), z.number()]).nullish(),
+});
+
 /**
  * CJ prices arrive as numbers, numeric strings, or ranges such as "1.20-3.40".
  * Returns the lowest price in the value, or 0 when nothing usable is present.
@@ -324,6 +334,48 @@ export class CJConnector {
       { list?: unknown } | unknown[] | undefined;
     const raw = Array.isArray(data) ? data : ((data as { list?: unknown })?.list ?? []);
     return z.array(CJItem).parse(raw);
+  }
+
+  /**
+   * One page of the account's "Added Products" (CJ: My Product List, GET /product/myProduct/query),
+   * shaped like catalog items. That endpoint has no category, so categoryId is looked up later.
+   */
+  async myProducts(pageNum = 1, pageSize = 100): Promise<CJItem[]> {
+    const q = new URLSearchParams({ pageNum: String(pageNum), pageSize: String(pageSize) });
+    const data = (await this.get(`/product/myProduct/query?${q}`)) as
+      { content?: unknown; list?: unknown } | unknown[] | undefined;
+    const raw = Array.isArray(data)
+      ? data
+      : ((data as { content?: unknown; list?: unknown })?.content ??
+        (data as { list?: unknown })?.list ??
+        []);
+    return z
+      .array(MyProduct)
+      .parse(raw)
+      .map((p) => ({
+        pid: p.productId,
+        productSku: p.sku ?? undefined,
+        productNameEn: p.nameEn ?? p.productName ?? undefined,
+        productImage: p.bigImage ?? undefined,
+        sellPrice: p.sellPrice ?? undefined,
+      }));
+  }
+
+  /** Every page of "Added Products", one request per second (CJ's limit). */
+  async *allMyProducts(pageSize = 100, maxPages = 20, delayMs = 1100): AsyncGenerator<CJItem[]> {
+    for (let page = 1; page <= maxPages; page++) {
+      if (page > 1) await new Promise((r) => setTimeout(r, delayMs));
+      const items = await this.myProducts(page, pageSize);
+      if (items.length) yield items;
+      if (items.length < pageSize) return;
+    }
+  }
+
+  /** A product's CJ category id from /product/query, or null when unknown. */
+  async categoryIdByPid(pid: string): Promise<string | null> {
+    const data = (await this.get(`/product/query?${new URLSearchParams({ pid })}`)) as
+      { categoryId?: unknown } | undefined;
+    return typeof data?.categoryId === "string" ? data.categoryId : null;
   }
 
   /** CJ's category tree (top level such as "Women's Clothing", then two sub-levels). */

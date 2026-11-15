@@ -183,3 +183,52 @@ describe("website carousel site map", async () => {
     expect(titleFitsSite("Anything", {})).toBe(true);
   });
 });
+
+describe("CJConnector.myProducts (Added Products)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads CJ's My Product List and shapes rows like catalog items", async () => {
+    const body = {
+      result: true,
+      data: {
+        pageNumber: 1,
+        content: [
+          {
+            productId: "2506210138111608900",
+            sku: "CJYD240735801AZ",
+            nameEn: "Simulation Marine Life Tiger Shark Model Children's Toy",
+            bigImage: "https://cf.cjdropshipping.com/shark.jpg",
+            sellPrice: "2.51",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(body)));
+    vi.stubGlobal("fetch", fetchMock);
+    const items = await new CJConnector("tok", "https://cj.test").myProducts(1, 100);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://cj.test/product/myProduct/query?pageNum=1&pageSize=100",
+    );
+    expect(items).toEqual([
+      {
+        pid: "2506210138111608900",
+        productSku: "CJYD240735801AZ",
+        productNameEn: "Simulation Marine Life Tiger Shark Model Children's Toy",
+        productImage: "https://cf.cjdropshipping.com/shark.jpg",
+        sellPrice: "2.51",
+      },
+    ]);
+  });
+
+  it("finds a product's category id", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ result: true, data: { categoryId: "cat-9" } })),
+        ),
+    );
+    expect(await new CJConnector("tok", "https://cj.test").categoryIdByPid("p1")).toBe("cat-9");
+  });
+});
