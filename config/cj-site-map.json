@@ -1030,6 +1030,60 @@
         "luggage net"
       ],
       "titleExclude": ["toy", "kids", "baby", "women", "dress"]
+    },
+    {
+      "slug": "realskillset",
+      "name": "RealSkillSet",
+      "domain": "realskillset.com",
+      "cjCategories": [
+        "Consumer Electronics",
+        "Phones & Accessories",
+        "Home, Garden & Furniture",
+        "Bags & Shoes"
+      ],
+      "terms": [
+        "laptop stand",
+        "webcam",
+        "usb microphone",
+        "noise cancelling headphones",
+        "led desk lamp",
+        "blue light glasses",
+        "laptop backpack",
+        "study planner",
+        "monitor light bar",
+        "wireless keyboard mouse",
+        "tablet stand",
+        "ring light"
+      ],
+      "titleMatch": [
+        "laptop stand",
+        "laptop holder",
+        "webcam",
+        "microphone",
+        "headphone",
+        "headset",
+        "earbuds",
+        "desk lamp",
+        "monitor light",
+        "light bar",
+        "ring light",
+        "blue light",
+        "laptop backpack",
+        "laptop bag",
+        "laptop sleeve",
+        "keyboard",
+        "mouse",
+        "mouse pad",
+        "tablet stand",
+        "notebook",
+        "planner",
+        "whiteboard",
+        "desk organizer",
+        "study",
+        "usb hub",
+        "docking station"
+      ],
+      "titleExclude": ["toy", "kids", "baby", "gaming chair", "sofa", "sexy"]
     }
   ]
 }
