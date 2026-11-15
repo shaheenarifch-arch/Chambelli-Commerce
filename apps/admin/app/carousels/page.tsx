@@ -232,7 +232,7 @@ export default async function CarouselsPage({
             >
               guide
             </a>
-            ). firearmsafety.us only takes safes, lock boxes and vaults; medicalsupplie.com only
+            ). firearmsafety.us only takes safes, lock boxes, vaults and gun locks; medicalsupplie.com only
             everyday non-prescription supplies.
           </li>
           <li>
