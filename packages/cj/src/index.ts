@@ -2,12 +2,12 @@ import { z } from "zod";
 
 const CJItem = z.object({
   pid: z.string(),
-  productSku: z.string().optional(),
-  productNameEn: z.string().optional(),
-  productImage: z.string().optional(),
-  sellPrice: z.union([z.string(), z.number()]).optional(),
-  categoryId: z.string().optional(),
-  categoryName: z.string().optional(),
+  productSku: z.string().nullish(),
+  productNameEn: z.string().nullish(),
+  productImage: z.string().nullish(),
+  sellPrice: z.union([z.string(), z.number()]).nullish(),
+  categoryId: z.string().nullish(),
+  categoryName: z.string().nullish(),
 });
 export type CJItem = z.infer<typeof CJItem>;
 

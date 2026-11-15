@@ -39,7 +39,7 @@ export async function syncCanada(cj: CJConnector) {
   const errors: Array<{ pid: string; message: string }> = [];
 
   const upsert = async (item: CJItem) => {
-    const priceUsd = parseCJPrice(item.sellPrice);
+    const priceUsd = parseCJPrice(item.sellPrice ?? undefined);
     const priced = canadaPrice(priceUsd, shipping, rate, margin);
     if (!priced) return false;
     await sleep(DELAY_MS);

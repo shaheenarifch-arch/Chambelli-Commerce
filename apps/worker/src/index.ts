@@ -122,7 +122,7 @@ function categoryFor(item: CJItem, index: Map<string, string>, map: SiteMap | nu
 
 async function upsertItem(supplierId: string, item: CJItem, category: string) {
   const sku = item.productSku ?? item.pid;
-  const price = parseCJPrice(item.sellPrice);
+  const price = parseCJPrice(item.sellPrice ?? undefined);
   const raw = item as unknown as Prisma.InputJsonValue;
   const product = await db.product.upsert({
     where: { sku },
