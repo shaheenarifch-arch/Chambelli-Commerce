@@ -906,6 +906,77 @@
         "sexy",
         "bikini"
       ]
+    },
+    {
+      "slug": "neededmen",
+      "name": "Needed.Men",
+      "domain": "needed.men",
+      "cjCategories": [
+        "Bags & Shoes",
+        "Jewelry & Watches",
+        "Phones & Accessories",
+        "Consumer Electronics",
+        "Men's Clothing",
+        "Health, Beauty & Hair"
+      ],
+      "terms": [
+        "men slim wallet",
+        "rfid card holder",
+        "key organizer",
+        "men sling bag",
+        "laptop backpack men",
+        "men leather belt",
+        "men watch",
+        "edc flashlight",
+        "tech organizer pouch",
+        "men grooming kit",
+        "money clip"
+      ],
+      "titleMatch": [
+        "men's wallet",
+        "mens wallet",
+        "men wallet",
+        "slim wallet",
+        "rfid",
+        "card holder",
+        "money clip",
+        "key organizer",
+        "keychain",
+        "sling bag",
+        "chest bag",
+        "laptop backpack",
+        "backpack",
+        "briefcase",
+        "messenger bag",
+        "belt",
+        "men's watch",
+        "mens watch",
+        "men watch",
+        "edc",
+        "flashlight",
+        "multitool",
+        "multi-tool",
+        "tech pouch",
+        "cable organizer",
+        "grooming kit",
+        "shaving",
+        "beard",
+        "trimmer",
+        "toiletry bag",
+        "duffel"
+      ],
+      "titleExclude": [
+        "women",
+        "woman",
+        "ladies",
+        "girl",
+        "kids",
+        "baby",
+        "knife",
+        "dagger",
+        "blade",
+        "sexy"
+      ]
     }
   ]
 }
