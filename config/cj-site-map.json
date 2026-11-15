@@ -1084,6 +1084,115 @@
         "docking station"
       ],
       "titleExclude": ["toy", "kids", "baby", "gaming chair", "sofa", "sexy"]
+    },
+    {
+      "slug": "coupondepots",
+      "name": "CouponDepots",
+      "domain": "coupondepots.info",
+      "cjCategories": [
+        "Consumer Electronics",
+        "Phones & Accessories",
+        "Home, Garden & Furniture",
+        "Health, Beauty & Hair",
+        "Sports & Outdoors"
+      ],
+      "terms": [
+        "trending gadget",
+        "wireless earbuds",
+        "phone accessories",
+        "kitchen gadget",
+        "led strip lights",
+        "smart plug",
+        "portable blender",
+        "mini projector",
+        "massage gun",
+        "gift set"
+      ],
+      "titleMatch": [
+        "earbuds",
+        "headphone",
+        "bluetooth speaker",
+        "power bank",
+        "charger",
+        "phone holder",
+        "smart",
+        "led strip",
+        "projector",
+        "portable blender",
+        "massage gun",
+        "air fryer",
+        "kitchen gadget",
+        "humidifier",
+        "gift"
+      ],
+      "titleExclude": [
+        "sexy",
+        "lingerie",
+        "supplement",
+        "gummies",
+        "capsule",
+        "knife",
+        "gun safe",
+        "bed frame",
+        "sofa"
+      ]
+    },
+    {
+      "slug": "desimarkets",
+      "name": "Desi Markets",
+      "domain": "desi.markets",
+      "cjCategories": [
+        "Home, Garden & Furniture",
+        "Home Improvement",
+        "Jewelry & Watches",
+        "Health, Beauty & Hair"
+      ],
+      "terms": [
+        "spice box",
+        "masala box",
+        "tiffin lunch box",
+        "stainless steel lunch box",
+        "tea set",
+        "chai cup",
+        "rice storage container",
+        "pressure cooker",
+        "kadai wok",
+        "tawa pan",
+        "rolling pin",
+        "bangles",
+        "henna"
+      ],
+      "titleMatch": [
+        "spice box",
+        "spice jar",
+        "spice rack",
+        "masala",
+        "tiffin",
+        "lunch box",
+        "bento",
+        "tea set",
+        "teapot",
+        "tea cup",
+        "chai",
+        "rice storage",
+        "rice dispenser",
+        "flour container",
+        "pressure cooker",
+        "wok",
+        "kadai",
+        "tawa",
+        "griddle",
+        "rolling pin",
+        "chapati",
+        "roti",
+        "dosa",
+        "stainless steel pot",
+        "bangle",
+        "henna",
+        "mehndi",
+        "bindi"
+      ],
+      "titleExclude": ["toy", "kids", "baby", "sexy", "supplement", "gummies"]
     }
   ]
 }
