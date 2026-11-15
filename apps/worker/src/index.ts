@@ -151,6 +151,44 @@ async function upsertItem(supplierId: string, item: CJItem, category: string) {
     },
     update: { supplierPrice: price, raw, lastSyncAt: new Date() },
   });
+  return product;
+}
+
+// Tag on products Shaheen added himself in CJ (the dashboard's "Added Products" page).
+export const ADDED_TAG = "cj-added";
+
+/**
+ * Pulls every product on the CJ "Added Products" page into Chambelli as a DRAFT tagged
+ * cj-added, with its real CJ category so the site map can place it. Returns the count saved.
+ */
+async function syncAddedProducts(
+  cj: CJConnector,
+  supplierId: string,
+  index: Map<string, string>,
+  map: SiteMap | null,
+  errors: Array<{ pid: string; message: string }>,
+): Promise<number> {
+  let saved = 0;
+  for await (const page of cj.allMyProducts()) {
+    for (const item of page) {
+      try {
+        await new Promise((r) => setTimeout(r, 1100)); // one CJ request per second
+        const categoryId = await cj.categoryIdByPid(item.pid).catch(() => null);
+        const full = categoryId ? { ...item, categoryId } : item;
+        const product = await upsertItem(supplierId, full, categoryFor(full, index, map));
+        if (!product.tags.includes(ADDED_TAG))
+          await db.product.update({
+            where: { id: product.id },
+            data: { tags: { push: ADDED_TAG } },
+          });
+        saved++;
+      } catch (e) {
+        errors.push({ pid: item.pid, message: e instanceof Error ? e.message : "unknown" });
+      }
+    }
+  }
+  console.log(`CJ Added Products: ${saved} saved to Chambelli`);
+  return saved;
 }
 
 export async function sync() {
@@ -183,6 +221,13 @@ export async function sync() {
       console.warn("CJ categories not loaded:", e instanceof Error ? e.message : e);
     }
     await new Promise((r) => setTimeout(r, 1100)); // CJ allows about one request per second
+    // Shaheen's hand-picked CJ "Added Products" come in first. Help: docs/CJ-SITE-MAP.md
+    try {
+      processed += await syncAddedProducts(cj, supplier.id, index, map, errors);
+    } catch (e) {
+      console.error("CJ Added Products sync failed", e);
+    }
+    await new Promise((r) => setTimeout(r, 1100));
     for await (const page of cj.allProducts(PAGE_SIZE, MAX_PAGES)) {
       for (const item of page) {
         try {
