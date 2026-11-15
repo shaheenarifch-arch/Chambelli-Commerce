@@ -232,7 +232,7 @@ export default async function CarouselsPage({
             >
               guide
             </a>
-            ). firearmsafety.us only takes safes, lock boxes, vaults and gun locks; medicalsupplie.com only
+            ). firearmsafety.us only takes safety and protective gear (safes, rifle safes and lockers, gun locks, fingerprint and keypad locks, child-safety locks and cabinets, helmets, shields, hearing and eye protection, night vision, flashlights, first aid); no weapons, ammo or body armor; medicalsupplie.com only
             everyday non-prescription supplies.
           </li>
           <li>
