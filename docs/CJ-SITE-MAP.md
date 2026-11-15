@@ -31,7 +31,7 @@ ShopDress (shopdress.us) keeps its own department plan inside `scripts/cj-shortl
 | `domain`             | The site's domain.                                                                                           |
 | `cjCategories`       | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter. |
 | `terms`              | Search words used for the shortlist.                                                                         |
-| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safes, lock boxes, vaults, gun locks).     |
+| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safety and protective gear).     |
 | `titleExclude`       | Optional. Never link a product whose title contains one of these words (e.g. no prescription items).         |
 
 ## Running the shortlist
