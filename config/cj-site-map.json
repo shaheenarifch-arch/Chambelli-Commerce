@@ -189,7 +189,12 @@
         "tourniquet",
         "multitool",
         "tactical shield",
-        "riot shield"
+        "riot shield",
+        "child safety lock",
+        "childproof lock box",
+        "child proof cabinet lock",
+        "wall mounted gun cabinet",
+        "locking storage cabinet"
       ],
       "titleMatch": [
         "safe",
@@ -227,7 +232,14 @@
         "tourniquet",
         "multitool",
         "multi-tool",
-        "shield"
+        "shield",
+        "child lock",
+        "child safety",
+        "childproof",
+        "child proof",
+        "cabinet lock",
+        "locking cabinet",
+        "gun cabinet"
       ],
       "titleExclude": [
         "holster",
