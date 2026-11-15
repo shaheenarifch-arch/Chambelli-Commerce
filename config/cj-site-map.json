@@ -723,6 +723,77 @@
         "pos "
       ],
       "titleExclude": ["toy", "kids", "baby", "sofa", "bed frame", "gun"]
+    },
+    {
+      "slug": "costumescout",
+      "name": "CostumeScout",
+      "domain": "costumescout.store",
+      "cjCategories": [
+        "Women's Clothing",
+        "Men's Clothing",
+        "Toys, Kids & Babies",
+        "Health, Beauty & Hair",
+        "Home, Garden & Furniture",
+        "Jewelry & Watches"
+      ],
+      "terms": [
+        "halloween costume",
+        "cosplay costume",
+        "party mask",
+        "costume wig",
+        "masquerade mask",
+        "kids costume",
+        "christmas costume",
+        "santa costume",
+        "halloween decoration",
+        "party props"
+      ],
+      "titleMatch": [
+        "costume",
+        "cosplay",
+        "halloween",
+        "masquerade",
+        "mask",
+        "wig",
+        "fancy dress",
+        "dress up",
+        "role play",
+        "santa",
+        "elf",
+        "witch",
+        "vampire",
+        "pirate",
+        "princess dress",
+        "fairy",
+        "angel wings",
+        "party props",
+        "face paint",
+        "tutu",
+        "cape",
+        "headband"
+      ],
+      "titleExclude": [
+        "disney",
+        "marvel",
+        "pokemon",
+        "harry potter",
+        "star wars",
+        "spiderman",
+        "spider-man",
+        "batman",
+        "frozen",
+        "naruto",
+        "demon slayer",
+        "genshin",
+        "barbie",
+        "mario",
+        "sexy",
+        "lingerie",
+        "face mask filter",
+        "sleep mask",
+        "n95",
+        "respirator"
+      ]
     }
   ]
 }
