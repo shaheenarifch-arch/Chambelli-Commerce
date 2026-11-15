@@ -794,6 +794,61 @@
         "n95",
         "respirator"
       ]
+    },
+    {
+      "slug": "drivezone",
+      "name": "DriveZone",
+      "domain": "drivezone.nexus",
+      "cjCategories": ["Consumer Electronics", "Phones & Accessories", "Home Improvement"],
+      "terms": [
+        "wireless carplay adapter",
+        "android auto adapter",
+        "dash cam",
+        "car phone mount",
+        "car charger",
+        "backup camera",
+        "car vacuum",
+        "tire inflator",
+        "car jump starter",
+        "car seat organizer",
+        "blind spot mirror",
+        "car led lights"
+      ],
+      "titleMatch": [
+        "car",
+        "carplay",
+        "android auto",
+        "dash cam",
+        "dashcam",
+        "vehicle",
+        "backup camera",
+        "reversing",
+        "tire",
+        "jump starter",
+        "obd",
+        "steering wheel",
+        "windshield",
+        "headlight",
+        "trunk",
+        "parking",
+        "automotive",
+        "automobile"
+      ],
+      "titleExclude": [
+        "toy car",
+        "rc car",
+        "kids car",
+        "ride on",
+        "card",
+        "cartoon",
+        "carpet",
+        "cart",
+        "scarf",
+        "carry",
+        "carving",
+        "cardigan",
+        "caramel"
+      ]
     }
   ]
 }
