@@ -154,8 +154,8 @@
       "name": "FirearmSafety",
       "domain": "firearmsafety.us",
       "cjCategories": ["Home Improvement", "Home, Garden & Furniture"],
-      "terms": ["gun safe", "lock box", "security safe", "key lock box", "hidden safe"],
-      "titleMatch": ["safe", "lock box", "lockbox", "vault", "key box", "security box", "cash box"],
+      "terms": ["gun safe", "lock box", "security safe", "key lock box", "hidden safe", "gun lock", "trigger lock", "cable gun lock", "gun cable lock", "biometric gun safe"],
+      "titleMatch": ["safe", "lock box", "lockbox", "vault", "key box", "security box", "cash box", "gun lock", "trigger lock", "cable lock"],
       "titleExclude": [
         "holster",
         "ammo",
