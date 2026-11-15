@@ -194,7 +194,12 @@
         "childproof lock box",
         "child proof cabinet lock",
         "wall mounted gun cabinet",
-        "locking storage cabinet"
+        "locking storage cabinet",
+        "fingerprint lock",
+        "biometric lock box",
+        "keypad lock box",
+        "combination lock box",
+        "digital code safe"
       ],
       "titleMatch": [
         "safe",
@@ -239,7 +244,14 @@
         "child proof",
         "cabinet lock",
         "locking cabinet",
-        "gun cabinet"
+        "gun cabinet",
+        "fingerprint",
+        "biometric",
+        "keypad",
+        "combination lock",
+        "code lock",
+        "password lock",
+        "digital lock"
       ],
       "titleExclude": [
         "holster",
