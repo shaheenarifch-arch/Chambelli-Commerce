@@ -608,6 +608,67 @@
         "taser",
         "knife"
       ]
+    },
+    {
+      "slug": "bedbathbuy",
+      "name": "BedBathBuy",
+      "domain": "bedbathbuy.trade",
+      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
+      "terms": [
+        "bed sheet set",
+        "pillowcase",
+        "duvet cover",
+        "throw blanket",
+        "mattress topper",
+        "bath towel set",
+        "bath mat",
+        "shower curtain",
+        "bathrobe",
+        "shower caddy",
+        "bathroom organizer",
+        "laundry basket"
+      ],
+      "titleMatch": [
+        "sheet set",
+        "bed sheet",
+        "fitted sheet",
+        "pillowcase",
+        "pillow case",
+        "pillow",
+        "duvet",
+        "comforter",
+        "quilt",
+        "bedspread",
+        "blanket",
+        "throw",
+        "mattress topper",
+        "mattress pad",
+        "towel",
+        "bath mat",
+        "bath rug",
+        "shower curtain",
+        "bathrobe",
+        "shower caddy",
+        "bathroom organizer",
+        "bathroom storage",
+        "toilet paper holder",
+        "towel rack",
+        "laundry basket",
+        "hamper"
+      ],
+      "titleExclude": [
+        "bed frame",
+        "wardrobe",
+        "shoe cabinet",
+        "sofa",
+        "toilet seat",
+        "toilet bowl",
+        "faucet",
+        "chicken coop",
+        "pet bed",
+        "dog",
+        "cat "
+      ]
     }
   ]
 }
