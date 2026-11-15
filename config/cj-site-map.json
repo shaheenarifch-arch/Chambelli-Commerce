@@ -199,7 +199,14 @@
         "biometric lock box",
         "keypad lock box",
         "combination lock box",
-        "digital code safe"
+        "digital code safe",
+        "rifle safe",
+        "long gun safe",
+        "gun locker",
+        "rifle cabinet",
+        "rifle gun safe",
+        "long gun cabinet",
+        "rifle locker"
       ],
       "titleMatch": [
         "safe",
@@ -251,7 +258,13 @@
         "combination lock",
         "code lock",
         "password lock",
-        "digital lock"
+        "digital lock",
+        "rifle safe",
+        "long gun",
+        "gun locker",
+        "rifle cabinet",
+        "rifle locker",
+        "gun storage"
       ],
       "titleExclude": [
         "holster",
