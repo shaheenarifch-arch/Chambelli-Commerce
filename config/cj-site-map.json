@@ -29,41 +29,235 @@
       "name": "GlowSculpt",
       "domain": "glowsculpt.site",
       "cjCategories": ["Health, Beauty & Hair"],
-      "terms": ["face roller", "makeup brush set", "facial massager", "nail kit", "skin care tool"]
+      "terms": [
+        "face roller",
+        "gua sha",
+        "facial massager",
+        "led face mask",
+        "microcurrent",
+        "facial steamer",
+        "skin care tool",
+        "eye massager",
+        "makeup brush set"
+      ],
+      "titleMatch": [
+        "face roller",
+        "gua sha",
+        "facial",
+        "face massager",
+        "face mask",
+        "led mask",
+        "microcurrent",
+        "steamer",
+        "derma",
+        "skin care",
+        "skincare",
+        "eye massager",
+        "jade",
+        "ice roller",
+        "makeup brush",
+        "beauty device",
+        "lifting",
+        "contour"
+      ],
+      "titleExclude": ["hair", "wig", "gummies", "supplement", "capsule", "tablet", "shilajit"]
     },
     {
       "slug": "hairstyle",
       "name": "Hairstyle Company",
       "domain": "hairstyle.company",
       "cjCategories": ["Health, Beauty & Hair"],
-      "terms": ["wig", "hair extension", "hair clip", "hair straightener", "hair dryer brush"]
+      "terms": [
+        "wig",
+        "hair extension",
+        "hair clip",
+        "hair straightener",
+        "hair dryer brush",
+        "curling iron",
+        "hair bonnet",
+        "hair scrunchie",
+        "hair care oil"
+      ],
+      "titleMatch": [
+        "wig",
+        "hair",
+        "extension",
+        "ponytail",
+        "bun",
+        "braid",
+        "curling",
+        "straightener",
+        "flat iron",
+        "hair dryer",
+        "hot brush",
+        "scrunchie",
+        "claw clip",
+        "headband",
+        "bonnet",
+        "comb",
+        "brush"
+      ],
+      "titleExclude": [
+        "gummies",
+        "supplement",
+        "capsule",
+        "tablet",
+        "shilajit",
+        "eyelash",
+        "eyebrow"
+      ]
     },
     {
       "slug": "lensloop",
       "name": "LensLoop",
       "domain": "lensloop.site",
-      "cjCategories": ["Jewelry & Watches", "Bags & Shoes"],
-      "terms": ["sunglasses", "polarized sunglasses", "blue light glasses"]
+      "cjCategories": [
+        "Jewelry & Watches",
+        "Bags & Shoes",
+        "Consumer Electronics",
+        "Health, Beauty & Hair",
+        "Sports & Outdoors"
+      ],
+      "terms": [
+        "sunglasses",
+        "polarized sunglasses",
+        "blue light glasses",
+        "reading glasses",
+        "glasses case",
+        "eyeglass chain",
+        "lens cleaning",
+        "smart glasses",
+        "sports sunglasses"
+      ],
+      "titleMatch": [
+        "sunglasses",
+        "glasses",
+        "eyeglass",
+        "eyewear",
+        "goggles",
+        "spectacle",
+        "reading glasses",
+        "lens cleaning",
+        "lens cloth",
+        "glasses case",
+        "glasses chain",
+        "glasses strap",
+        "nose pad"
+      ],
+      "titleExclude": [
+        "contact lens",
+        "prescription",
+        "shoe",
+        "sandal",
+        "necklace",
+        "earring",
+        "ring set",
+        "bracelet",
+        "wine",
+        "drinking",
+        "cup",
+        "tumbler",
+        "shot glass",
+        "glass jar"
+      ]
     },
     {
       "slug": "flowerofheaven",
       "name": "Flower of Heaven",
       "domain": "flowerofheaven.store",
-      "cjCategories": ["Home, Garden & Furniture"],
+      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
       "terms": [
         "artificial flowers",
         "artificial roses",
-        "flower vase",
         "preserved flower",
-        "plant pot"
+        "flower vase",
+        "plant pot",
+        "faux plant",
+        "flower wall",
+        "dried flowers",
+        "flower box"
+      ],
+      "titleMatch": [
+        "flower",
+        "floral",
+        "rose",
+        "bouquet",
+        "vase",
+        "plant",
+        "planter",
+        "flower pot",
+        "succulent",
+        "garland",
+        "wreath",
+        "botanical",
+        "peony",
+        "tulip",
+        "orchid",
+        "eucalyptus",
+        "bonsai"
+      ],
+      "titleExclude": [
+        "shoe cabinet",
+        "wardrobe",
+        "sofa",
+        "bed frame",
+        "mattress",
+        "toilet",
+        "chicken coop"
       ]
     },
     {
       "slug": "homewellnessdeals",
       "name": "Home Wellness Deals",
       "domain": "homewellnessdeals.com",
-      "cjCategories": ["Home, Garden & Furniture", "Home Improvement"],
-      "terms": ["aroma diffuser", "led lamp", "storage box", "kitchen gadget", "wall decor"]
+      "cjCategories": [
+        "Home, Garden & Furniture",
+        "Home Improvement",
+        "Health, Beauty & Hair",
+        "Consumer Electronics"
+      ],
+      "terms": [
+        "neck massager",
+        "massage gun",
+        "aroma diffuser",
+        "humidifier",
+        "air purifier",
+        "heating pad",
+        "sleep mask",
+        "white noise machine",
+        "foot massager",
+        "sunrise alarm"
+      ],
+      "titleMatch": [
+        "massager",
+        "massage",
+        "diffuser",
+        "humidifier",
+        "air purifier",
+        "essential oil",
+        "heating pad",
+        "heated",
+        "sleep",
+        "white noise",
+        "sunrise",
+        "acupressure",
+        "foot spa",
+        "yoga",
+        "meditation",
+        "salt lamp",
+        "weighted blanket",
+        "posture"
+      ],
+      "titleExclude": [
+        "christmas card",
+        "greeting card",
+        "chicken coop",
+        "shoe cabinet",
+        "gummies",
+        "supplement",
+        "capsule",
+        "shilajit"
+      ]
     },
     {
       "slug": "petscoolstuff",
@@ -83,14 +277,44 @@
       "slug": "flyhorizons",
       "name": "FlyHorizons",
       "domain": "flyhorizons.online",
-      "cjCategories": ["Bags & Shoes", "Phones & Accessories"],
+      "cjCategories": [
+        "Bags & Shoes",
+        "Phones & Accessories",
+        "Home, Garden & Furniture",
+        "Consumer Electronics"
+      ],
       "terms": [
         "travel bag",
-        "luggage organizer",
+        "luggage",
+        "carry on",
+        "packing cubes",
         "travel backpack",
+        "neck pillow",
         "travel adapter",
-        "power bank"
-      ]
+        "passport holder",
+        "luggage tag",
+        "toiletry bag",
+        "travel organizer"
+      ],
+      "titleMatch": [
+        "travel",
+        "luggage",
+        "suitcase",
+        "carry-on",
+        "carry on",
+        "packing cube",
+        "neck pillow",
+        "passport",
+        "luggage tag",
+        "toiletry",
+        "duffel",
+        "weekender",
+        "travel adapter",
+        "universal adapter",
+        "eye mask",
+        "compression bag"
+      ],
+      "titleExclude": ["sandal", "heel", "phone stand"]
     },
     {
       "slug": "medicalsupplie",
@@ -102,12 +326,16 @@
         "knee brace",
         "posture corrector",
         "pill organizer",
-        "thermometer"
+        "thermometer",
+        "blood pressure monitor",
+        "pulse oximeter",
+        "heating pad",
+        "compression sleeve",
+        "walking cane"
       ],
       "titleMatch": [
         "first aid",
         "brace",
-        "support",
         "posture",
         "pill",
         "thermometer",
@@ -119,34 +347,123 @@
         "bandage",
         "ice pack",
         "blood pressure",
-        "pulse oximeter"
+        "pulse oximeter",
+        "oximeter",
+        "pill box",
+        "pill case",
+        "arm sling",
+        "wrist brace",
+        "back brace"
       ],
-      "titleExclude": ["prescription", "syringe", "needle", "catheter", "injection", "contact lens"]
+      "titleExclude": [
+        "prescription",
+        "syringe",
+        "needle",
+        "catheter",
+        "injection",
+        "contact lens",
+        "gummies",
+        "supplement",
+        "capsule",
+        "tablet",
+        "vitamin",
+        "shilajit"
+      ]
     },
     {
       "slug": "ticktes",
       "name": "Ticktes",
       "domain": "ticktes.online",
-      "cjCategories": ["Bags & Shoes", "Phones & Accessories"],
+      "cjCategories": [
+        "Bags & Shoes",
+        "Sports & Outdoors",
+        "Phones & Accessories",
+        "Home, Garden & Furniture",
+        "Toys, Kids & Babies"
+      ],
       "terms": [
-        "crossbody bag",
-        "travel wallet",
-        "phone lanyard",
-        "portable charger",
-        "rain poncho"
-      ]
+        "clear stadium bag",
+        "ticket holder",
+        "lanyard",
+        "festival fanny pack",
+        "rain poncho",
+        "picnic blanket",
+        "beach bag",
+        "portable fan",
+        "folding chair",
+        "waterproof phone pouch",
+        "cooler bag"
+      ],
+      "titleMatch": [
+        "stadium",
+        "clear bag",
+        "ticket",
+        "lanyard",
+        "badge holder",
+        "festival",
+        "concert",
+        "fanny pack",
+        "belt bag",
+        "poncho",
+        "picnic",
+        "beach",
+        "portable fan",
+        "folding chair",
+        "camping chair",
+        "cooler",
+        "waterproof phone",
+        "phone pouch",
+        "party",
+        "binocular"
+      ],
+      "titleExclude": ["sandal", "heel", "evening bag"]
     },
     {
       "slug": "bostondaily",
       "name": "Boston Daily",
       "domain": "bostondaily.us",
-      "cjCategories": ["Home, Garden & Furniture", "Consumer Electronics"],
+      "cjCategories": ["Home, Garden & Furniture", "Consumer Electronics", "Phones & Accessories"],
       "terms": [
-        "kitchen gadget",
         "led desk lamp",
         "wireless charger",
-        "coffee mug",
-        "home organizer"
+        "desk organizer",
+        "laptop stand",
+        "reading light",
+        "coffee mug warmer",
+        "bluetooth speaker",
+        "phone stand",
+        "monitor light bar"
+      ],
+      "titleMatch": [
+        "desk",
+        "laptop stand",
+        "monitor",
+        "reading light",
+        "book light",
+        "lamp",
+        "wireless charger",
+        "charging station",
+        "organizer",
+        "mug warmer",
+        "coffee",
+        "speaker",
+        "earbuds",
+        "headphones",
+        "keyboard",
+        "mouse pad",
+        "phone stand",
+        "notebook"
+      ],
+      "titleExclude": [
+        "shoe cabinet",
+        "wardrobe",
+        "bed frame",
+        "mattress",
+        "sofa",
+        "chicken coop",
+        "toilet",
+        "coffee table",
+        "desk chair"
       ]
     },
     {
