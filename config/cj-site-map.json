@@ -669,6 +669,60 @@
         "dog",
         "cat "
       ]
+    },
+    {
+      "slug": "businessbuy",
+      "name": "BusinessBuy",
+      "domain": "businessbuy.site",
+      "cjCategories": [
+        "Consumer Electronics",
+        "Home Improvement",
+        "Home, Garden & Furniture",
+        "Phones & Accessories"
+      ],
+      "terms": [
+        "receipt printer",
+        "barcode scanner",
+        "label printer",
+        "cash drawer",
+        "money counter",
+        "security camera",
+        "desk organizer",
+        "business card holder",
+        "label maker",
+        "paper shredder",
+        "whiteboard",
+        "packing tape dispenser",
+        "poly mailer"
+      ],
+      "titleMatch": [
+        "receipt printer",
+        "thermal printer",
+        "label printer",
+        "barcode",
+        "scanner",
+        "cash drawer",
+        "cash register",
+        "money counter",
+        "bill counter",
+        "counterfeit",
+        "security camera",
+        "surveillance",
+        "doorbell",
+        "door chime",
+        "desk organizer",
+        "business card",
+        "label maker",
+        "shredder",
+        "whiteboard",
+        "calculator",
+        "tape dispenser",
+        "mailer",
+        "shipping label",
+        "safe",
+        "pos "
+      ],
+      "titleExclude": ["toy", "kids", "baby", "sofa", "bed frame", "gun"]
     }
   ]
 }
