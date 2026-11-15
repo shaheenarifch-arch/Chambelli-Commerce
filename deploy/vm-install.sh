@@ -81,8 +81,8 @@ cd "$APP_DIR"
 docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up -d --build
 
 # 5. HTTPS via the VM's existing Caddy. Public: API routes and the widget.
-#    Everything else (the admin dashboard) needs the dashboard login.
-HASH=$(caddy hash-password --plaintext "$ADMIN_DASHBOARD_PASSWORD")
+#    Everything else is the admin dashboard, which has its own sign-in page (/login)
+#    using ADMIN_DASHBOARD_PASSWORD. No browser Basic Auth popup: some Chrome extensions block it.
 install -d -m 0755 /etc/caddy/conf.d
 cat > "$SNIP" <<EOF
 $DOMAIN {
@@ -92,9 +92,6 @@ $DOMAIN {
 		reverse_proxy 127.0.0.1:8098
 	}
 	handle {
-		basic_auth {
-			shaheen $HASH
-		}
 		reverse_proxy 127.0.0.1:3005
 	}
 }
