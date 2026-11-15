@@ -3,14 +3,14 @@
 Chambelli runs on the same Google Cloud VM as Bhaddru (agent.getservices.ai), in Docker,
 behind the VM's existing Caddy web server. Nothing else on the VM is changed.
 
-| What                | Where                                                   |
-| ------------------- | ------------------------------------------------------- |
-| Admin dashboard     | `https://chambelli.getservices.ai` (login: `shaheen`)   |
-| Public API + widget | `https://chambelli.getservices.ai/v1/...`, `/widget.js` |
-| Health check        | `https://chambelli.getservices.ai/health`               |
-| Code                | `/opt/chambelli`                                        |
-| Secrets             | `/etc/chambelli/env` (root only)                        |
-| Caddy site          | `/etc/caddy/conf.d/chambelli.caddy`                     |
+| What                | Where                                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Admin dashboard     | `https://chambelli.getservices.ai` (sign-in page, user `shaheen`; password is `ADMIN_DASHBOARD_PASSWORD` in `/etc/chambelli/env`) |
+| Public API + widget | `https://chambelli.getservices.ai/v1/...`, `/widget.js`                                                                           |
+| Health check        | `https://chambelli.getservices.ai/health`                                                                                         |
+| Code                | `/opt/chambelli`                                                                                                                  |
+| Secrets             | `/etc/chambelli/env` (root only)                                                                                                  |
+| Caddy site          | `/etc/caddy/conf.d/chambelli.caddy`                                                                                               |
 
 Containers: `postgres`, `redis`, `api` (127.0.0.1:8098), `admin` (127.0.0.1:3005) and
 `worker` (CJ sync every six hours). Bhaddru keeps port 8080.

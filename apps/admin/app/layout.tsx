@@ -19,6 +19,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               <Link href="/">Overview</Link>
               <Link href="/amazon">Amazon US · CA · MX</Link>
               <Link href="/carousels">Website carousels</Link>
+              <a href="/logout">Sign out</a>
             </nav>
           </div>
           <span className="env">

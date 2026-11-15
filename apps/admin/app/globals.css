@@ -624,3 +624,49 @@ form.inline {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.login-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 64px 16px;
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-card h1 {
+  margin: 0;
+}
+.login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.login-card input {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--text);
+}
+.login-card button {
+  padding: 11px;
+  border: 0;
+  border-radius: 8px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-card code {
+  font-size: 12px;
+}
+.login-card a {
+  color: var(--text);
+}
