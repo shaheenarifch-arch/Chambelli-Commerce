@@ -977,6 +977,59 @@
         "blade",
         "sexy"
       ]
+    },
+    {
+      "slug": "outdoorhaulers",
+      "name": "OutdoorHaulers",
+      "domain": "outdoorhaulers.site",
+      "cjCategories": [
+        "Sports & Outdoors",
+        "Home Improvement",
+        "Consumer Electronics",
+        "Bags & Shoes"
+      ],
+      "terms": [
+        "ratchet tie down strap",
+        "cargo net",
+        "bungee cord",
+        "roof cargo bag",
+        "trunk organizer",
+        "bike rack",
+        "bike lock",
+        "kayak strap",
+        "hitch cargo carrier",
+        "bike phone mount",
+        "bike bag",
+        "camping storage box"
+      ],
+      "titleMatch": [
+        "tie down",
+        "tie-down",
+        "ratchet strap",
+        "cargo net",
+        "cargo bag",
+        "cargo carrier",
+        "roof bag",
+        "roof rack",
+        "bungee",
+        "trunk organizer",
+        "bike rack",
+        "bicycle rack",
+        "bike lock",
+        "bicycle lock",
+        "kayak",
+        "canoe",
+        "hitch",
+        "bike bag",
+        "bicycle bag",
+        "pannier",
+        "handlebar",
+        "bike phone mount",
+        "storage box",
+        "tow strap",
+        "luggage net"
+      ],
+      "titleExclude": ["toy", "kids", "baby", "women", "dress"]
     }
   ]
 }
