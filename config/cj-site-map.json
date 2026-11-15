@@ -849,6 +849,63 @@
         "cardigan",
         "caramel"
       ]
+    },
+    {
+      "slug": "luxurytravel",
+      "name": "LUX Luxury Travel",
+      "domain": "luxurytravel.party",
+      "cjCategories": [
+        "Sports & Outdoors",
+        "Bags & Shoes",
+        "Phones & Accessories",
+        "Consumer Electronics",
+        "Home, Garden & Furniture"
+      ],
+      "terms": [
+        "dry bag",
+        "waterproof phone case",
+        "floating sunglasses strap",
+        "beach towel",
+        "cooler bag",
+        "waterproof bluetooth speaker",
+        "snorkel set",
+        "water shoes",
+        "pool float",
+        "sun hat",
+        "beach bag",
+        "binoculars"
+      ],
+      "titleMatch": [
+        "dry bag",
+        "waterproof",
+        "floating",
+        "boat",
+        "yacht",
+        "sailing",
+        "marine",
+        "beach towel",
+        "beach bag",
+        "cooler",
+        "snorkel",
+        "diving mask",
+        "water shoes",
+        "aqua shoes",
+        "pool float",
+        "inflatable lounger",
+        "sun hat",
+        "bucket hat",
+        "binocular",
+        "deck"
+      ],
+      "titleExclude": [
+        "life jacket",
+        "life vest",
+        "pfd",
+        "buoyancy aid",
+        "kids float vest",
+        "sexy",
+        "bikini"
+      ]
     }
   ]
 }
