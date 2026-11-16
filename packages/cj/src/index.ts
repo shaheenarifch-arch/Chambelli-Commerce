@@ -82,6 +82,11 @@ export interface SiteMapEntry {
   domain: string;
   cjCategories: string[];
   terms: string[];
+  /**
+   * Which market the site sells to: "US" (default, CJ US warehouse, USD) or "UK" (CJ UK
+   * warehouse, GBP). UK sites only get products from the UK sync and need titleMatch words.
+   */
+  market?: "US" | "UK";
   /** When set, a product title must contain one of these words (e.g. "safe" for firearmsafety.us). */
   titleMatch?: string[];
   /** Never link a product whose title contains one of these words. */

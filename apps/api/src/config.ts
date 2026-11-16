@@ -28,6 +28,17 @@ export const config = {
         ? Number(process.env.SITE_US_SHIPPING_COST)
         : null,
   },
+  /** UK chapter (docs/UK.md): GBP prices for UK sites, from CJ UK-warehouse stock. */
+  uk: {
+    usdToGbpRate:
+      Number(process.env.USD_TO_GBP_RATE) > 0 ? Number(process.env.USD_TO_GBP_RATE) : null,
+    shippingGbp:
+      process.env.UK_SHIPPING_ESTIMATE_GBP && Number(process.env.UK_SHIPPING_ESTIMATE_GBP) >= 0
+        ? Number(process.env.UK_SHIPPING_ESTIMATE_GBP)
+        : null,
+    minMarginPercent: Number(process.env.UK_MIN_MARGIN_PERCENT ?? 30),
+    vatPercent: Number(process.env.UK_VAT_PERCENT ?? 0),
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",

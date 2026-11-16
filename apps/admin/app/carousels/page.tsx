@@ -16,6 +16,8 @@ type Site = {
   slug: string;
   domain: string;
   active: boolean;
+  market: string;
+  currency: string;
   live: number;
   waiting: number;
   removed: number;
@@ -37,6 +39,12 @@ type Row = {
 
 const usd = (v: string | number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(v));
+/** Shows a price in its own currency (GBP on UK sites). */
+const money = (v: string | number, currency: string) =>
+  new Intl.NumberFormat(currency === "GBP" ? "en-GB" : "en-US", {
+    style: "currency",
+    currency,
+  }).format(Number(v));
 
 export default async function CarouselsPage({
   searchParams,
@@ -50,8 +58,14 @@ export default async function CarouselsPage({
     ? await apiGet<{ rows: Row[] }>(`/v1/admin/sites/${selected.slug}/products`)
     : { data: null, error: null };
   const rows = detail.data?.rows ?? [];
-  const waiting = rows.filter((r) => r.active && r.product.status !== "ACTIVE");
-  const live = rows.filter((r) => r.active && r.product.status === "ACTIVE");
+  const uk = selected?.market === "UK";
+  // UK products are live only once they have an in-stock GBP price.
+  const isLive = (r: Row) =>
+    r.active &&
+    r.product.status === "ACTIVE" &&
+    (!uk || r.product.variants.some((v) => v.currency === "GBP" && v.quantity > 0));
+  const waiting = rows.filter((r) => r.active && !isLive(r));
+  const live = rows.filter(isLive);
   const removed = rows.filter((r) => !r.active);
   const error = sites.error ?? detail.error;
   const embed = selected
@@ -117,14 +131,34 @@ export default async function CarouselsPage({
               <h2>
                 {selected.name} · {live.length} live of {MIN}–{MAX}
               </h2>
+              {uk ? (
+                <p className="help">
+                  🇬🇧 <b>UK site</b>: <b>Approve</b> prices each product in GBP at your 30% margin
+                  with UK delivery (and VAT, if set) built in, checks CJ&apos;s UK warehouse stock,
+                  and puts it live. Products with no UK stock stay waiting. Settings:{" "}
+                  <a
+                    href="https://github.com/shaheenarifch-arch/Chambelli-Commerce/blob/main/docs/UK.md"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    UK guide
+                  </a>
+                  .
+                </p>
+              ) : (
+                <p className="help">
+                  <b>Approve</b> prices each product at your 30% margin with US shipping built in,
+                  checks CJ&apos;s US warehouse stock, and puts it live. Products CJ has no US stock
+                  for stay off. Tick products to approve just those, or approve everything waiting
+                  (up to {MAX} at a time).
+                </p>
+              )}
               <p className="help">
-                <b>Approve</b> prices each product at your 30% margin with US shipping built in,
-                checks CJ&apos;s US warehouse stock, and puts it live. Products CJ has no US stock
-                for stay off. Tick products to approve just those, or approve everything waiting (up
-                to {MAX} at a time).
+                CJ allows about one request per second: approve <b>one site at a time</b>.
               </p>
               <form action={approve}>
                 <input type="hidden" name="site" value={selected.slug} />
+                <input type="hidden" name="market" value={uk ? "UK" : "US"} />
                 <button
                   type="submit"
                   className="approve"
@@ -197,11 +231,11 @@ export default async function CarouselsPage({
                             <span className="ptitle">{r.product.title}</span>
                             <span className="stat-note">
                               {v
-                                ? `${usd(v.price)} · ${v.quantity} in stock`
+                                ? `${money(v.price, v.currency)} · ${v.quantity} in stock`
                                 : cost
                                   ? `CJ cost ${usd(cost)}`
                                   : "No CJ price"}
-                              {r.product.status === "OUT_OF_STOCK" ? " · no US stock" : ""}
+                              {!uk && r.product.status === "OUT_OF_STOCK" ? " · no US stock" : ""}
                             </span>
                           </label>
                         );
