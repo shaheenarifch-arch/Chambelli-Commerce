@@ -119,6 +119,7 @@ export async function siteRoutes(app: FastifyInstance) {
       void approveUk(cj, rows, req.log).finally(() => approving.delete(site.id));
       return reply.code(202).send({ started: true, count: rows.length });
     }
+    const usShipping = shipping as number; // checked above for US sites
     void (async () => {
       for (const [i, r] of rows.entries()) {
         try {
@@ -127,7 +128,7 @@ export async function siteRoutes(app: FastifyInstance) {
           if (!sp || !(cost > 0)) continue;
           if (i > 0) await sleep(CJ_DELAY_MS);
           const stock = await cj.warehouseStock(sp.supplierProductId, "US");
-          const price = ending99(computePrice(cost, shipping, 0, MARGIN_PERCENT));
+          const price = ending99(computePrice(cost, usShipping, 0, MARGIN_PERCENT));
           const sku = `${r.product.sku}-US`;
           await db.productVariant.upsert({
             where: { sku },
@@ -136,13 +137,13 @@ export async function siteRoutes(app: FastifyInstance) {
               sku,
               name: "Ships from US",
               cost,
-              shippingCost: shipping,
+              shippingCost: usShipping,
               price,
               currency: "USD",
               warehouse: "US",
               quantity: stock,
             },
-            update: { cost, shippingCost: shipping, price, quantity: stock, active: true },
+            update: { cost, shippingCost: usShipping, price, quantity: stock, active: true },
           });
           await db.product.update({
             where: { id: r.productId },
