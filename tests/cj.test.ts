@@ -147,12 +147,12 @@ describe("website carousel site map", async () => {
     readFileSync(new URL("../config/cj-site-map.json", import.meta.url), "utf8"),
   );
 
-  it("covers the 15 chosen sites with 30 to 50 products each", () => {
+  it("covers the 25 chosen sites with 30 to 50 products each", () => {
     expect(map.productsPerSite).toBe(50);
     expect(map.minProductsPerSite).toBe(30);
     const domains = map.sites.map((s: { domain: string }) => s.domain);
-    expect(domains).toHaveLength(15);
-    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(15);
+    expect(domains).toHaveLength(25);
+    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(25);
     for (const d of [
       "shopdress.us",
       "firearmsafety.us",
