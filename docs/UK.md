@@ -36,3 +36,19 @@ In `config/cj-site-map.json`, give a site `"market": "UK"`. The next sync then:
 (30% margin + UK shipping + VAT if set) and checks CJ's UK stock. Products with no UK stock stay
 waiting. If you see "set USD_TO_GBP_RATE and UK_SHIPPING_ESTIMATE_GBP", add those to the server env
 first. CJ allows about one request per second, so approve **one site at a time**.
+
+## 3. Checkout in GBP (Chambelli's own, not Fashtronix Hub)
+
+UK sites check out through Chambelli's own API (`/v1/cart/items`, `/v1/checkout`), charged in **GBP**
+with Stripe or PayPal:
+
+- UK delivery addresses only (country `GB`; `UK` is accepted and changed to `GB`);
+- the postcode must be valid and is saved as `SW1A 1AA` style;
+- nothing is added at checkout: delivery and any VAT are already in the price.
+
+**Chambelli UK storefront page:** run `pnpm db:uk` once (creates the `chambelli-uk` site and its
+storefront carousel), then open `/uk` on the API. On the VM, add `/uk` to the `@api` line in
+`/etc/caddy/conf.d/chambelli.caddy` (the install script now does this) and reload Caddy.
+
+Card payments need `STRIPE_SECRET_KEY` (and the webhook) set on the server; PayPal needs the
+`PAYPAL_*` values. Stripe and PayPal both support GBP.

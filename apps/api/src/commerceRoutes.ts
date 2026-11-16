@@ -6,7 +6,12 @@ import { OrderService } from "@chambelli/orders";
 import { PromotionService } from "@chambelli/promotions";
 import { StripePayments, PayPalPayments } from "@chambelli/payments";
 import { ReturnService } from "@chambelli/returns";
-import { canadaTaxRate, normalizePostalCode, provinceCode } from "@chambelli/pricing";
+import {
+  canadaTaxRate,
+  normalizePostalCode,
+  normalizeUkPostcode,
+  provinceCode,
+} from "@chambelli/pricing";
 import { config } from "./config.js";
 
 const AddItem = z.object({
@@ -99,6 +104,15 @@ export async function commerceRoutes(app: FastifyInstance) {
       b.address.postalCode = postalCode;
       taxRatePercent = canadaTaxRate(province, config.canada.gstHstRegistered);
     }
+    // UK chapter (docs/UK.md): ships only within the UK, charged in GBP. Prices already include
+    // delivery and any VAT (UK shoppers must see VAT-inclusive prices), so nothing is added here.
+    if (site.market === "UK") {
+      if (b.address.country === "UK") b.address.country = "GB";
+      if (b.address.country !== "GB") throw new Error("SHIPPING_COUNTRY_NOT_SUPPORTED");
+      const postcode = normalizeUkPostcode(b.address.postalCode);
+      if (!postcode) throw new Error("INVALID_POSTAL_CODE");
+      b.address.postalCode = postcode;
+    }
 
     const summary = await carts.summary(b.cartId);
     let discount = 0;
@@ -115,7 +129,7 @@ export async function commerceRoutes(app: FastifyInstance) {
       update: {},
     });
     const address = await db.address.create({ data: { ...b.address, customerId: customer.id } });
-    // Shipping stays at zero (Canadian prices include it). Tax is zero except GST/HST on the
+    // Shipping stays at zero (Canadian and UK prices include it). Tax is zero except GST/HST on the
     // Canada site once registered; US tax still needs a quote service (see docs/PART2.md).
     const order = await orders.createFromCart({
       cartId: b.cartId,
