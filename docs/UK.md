@@ -52,3 +52,15 @@ storefront carousel), then open `/uk` on the API. On the VM, add `/uk` to the `@
 
 Card payments need `STRIPE_SECRET_KEY` (and the webhook) set on the server; PayPal needs the
 `PAYPAL_*` values. Stripe and PayPal both support GBP.
+
+## 4. The UK sites
+
+| Site                                         | Slug              | Sells                                                                         |
+| -------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| [jewllery.store](https://jewllery.store)     | `jewllery`        | Jewellery: necklaces, earrings, bracelets, rings, watches                     |
+| [buybeststores.uk](https://buybeststores.uk) | `buybeststoresuk` | Electronics and fitness: earbuds, speakers, chargers, smart watches, home gym |
+| [buybeststore.com](https://buybeststore.com) | `buybeststore`    | Best buys across home, kitchen, beauty, tech, garden                          |
+| [ezpass.uk](https://ezpass.uk)               | `ezpassuk`        | UK travel gear: luggage, packing cubes, adapters, power banks                 |
+
+Products with US, EU or AU plugs are kept off the UK sites. Each site has the carousel at the top of
+its homepage; it hides itself until you approve products.

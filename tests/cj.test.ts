@@ -147,12 +147,12 @@ describe("website carousel site map", async () => {
     readFileSync(new URL("../config/cj-site-map.json", import.meta.url), "utf8"),
   );
 
-  it("covers the 25 chosen sites with 30 to 50 products each", () => {
+  it("covers the 29 chosen sites with 30 to 50 products each", () => {
     expect(map.productsPerSite).toBe(50);
     expect(map.minProductsPerSite).toBe(30);
     const domains = map.sites.map((s: { domain: string }) => s.domain);
-    expect(domains).toHaveLength(25);
-    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(25);
+    expect(domains).toHaveLength(29);
+    expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(29);
     for (const d of [
       "shopdress.us",
       "firearmsafety.us",
@@ -177,6 +177,19 @@ describe("website carousel site map", async () => {
     expect(titleFitsSite("Weekly Pill Organizer 7 Day", site)).toBe(true);
     expect(titleFitsSite("Disposable Syringe Needle Set", site)).toBe(false);
     expect(titleFitsSite("Makeup Brush Set", site)).toBe(false);
+  });
+
+  it("sells the 4 UK sites from UK stock with title rules and UK plugs only", () => {
+    const uk = map.sites.filter((s: { market?: string }) => s.market === "UK");
+    expect(uk.map((s: { domain: string }) => s.domain).sort()).toEqual([
+      "buybeststore.com",
+      "buybeststores.uk",
+      "ezpass.uk",
+      "jewllery.store",
+    ]);
+    for (const s of uk) expect(s.titleMatch.length).toBeGreaterThan(0);
+    const ez = map.sites.find((s: { slug: string }) => s.slug === "ezpassuk");
+    expect(ez.titleExclude).toContain("us plug");
   });
 
   it("lets sites without title rules take anything in their categories", () => {
