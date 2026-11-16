@@ -11,6 +11,7 @@ import {
   type SiteMap,
 } from "@chambelli/cj";
 import { syncCanada } from "./canada.js";
+import { syncUk } from "./uk.js";
 import { checkAmazonListings } from "./amazon.js";
 
 const PAGE_SIZE = 100;
@@ -263,6 +264,8 @@ export async function sync() {
     }
     // Canada chapter: runs after the main sync, only when CJ_SYNC_CANADA=true.
     if (process.env.CJ_SYNC_CANADA === "true") await syncCanada(cj);
+    // UK chapter: GB-warehouse stock priced in GBP, only when CJ_SYNC_UK=true. Help: docs/UK.md
+    if (process.env.CJ_SYNC_UK === "true") await syncUk(cj);
   } catch (e) {
     await db.syncJob.update({
       where: { id: job.id },
