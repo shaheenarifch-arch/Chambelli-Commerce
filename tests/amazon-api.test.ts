@@ -22,6 +22,7 @@ const db = {
     update: vi.fn(),
   },
   amazonListing: { findMany: vi.fn(async () => []) },
+  website: { findUniqueOrThrow: vi.fn(async () => ({ id: "s1", market: "US", currency: "USD" })) },
 };
 vi.mock("@chambelli/database", () => ({
   db,
