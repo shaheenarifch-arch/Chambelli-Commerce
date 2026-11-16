@@ -10,6 +10,8 @@ const widgetPath = new URL("../../public/widget.js", import.meta.url);
 let widgetSource: string | null = null;
 const canadaPagePath = new URL("../../public/ca.html", import.meta.url);
 let canadaPage: string | null = null;
+const ukPagePath = new URL("../../public/uk.html", import.meta.url);
+let ukPage: string | null = null;
 
 const AnalyticsBody = z.object({
   websiteSlug: z.string().min(1).max(100),
@@ -84,6 +86,20 @@ export async function publicRoutes(app: FastifyInstance) {
       .type("text/html; charset=utf-8")
       .header("Cache-Control", "public, max-age=300")
       .send(canadaPage.replaceAll("{{API_BASE}}", safeBase));
+  });
+
+  /**
+   * Chambelli UK storefront page (docs/UK.md). Point agent.getservices.ai/uk at this route;
+   * the carousel inside it loads GBP products from PUBLIC_API_BASE_URL.
+   */
+  app.get("/uk", async (req, reply) => {
+    ukPage ??= await readFile(ukPagePath, "utf8");
+    const base = (config.publicApiBaseUrl || `${req.protocol}://${req.host}`).replace(/\/$/, "");
+    const safeBase = base.replace(/[&<>"']/g, "");
+    return reply
+      .type("text/html; charset=utf-8")
+      .header("Cache-Control", "public, max-age=300")
+      .send(ukPage.replaceAll("{{API_BASE}}", safeBase));
   });
 
   /** The embeddable widget, served from the API so sites need only one script tag. */

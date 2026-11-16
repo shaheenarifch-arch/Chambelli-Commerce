@@ -87,7 +87,7 @@ install -d -m 0755 /etc/caddy/conf.d
 cat > "$SNIP" <<EOF
 $DOMAIN {
 	encode gzip
-	@api path /v1/* /widget.js /ca /health /health/*
+	@api path /v1/* /widget.js /ca /uk /health /health/*
 	handle @api {
 		reverse_proxy 127.0.0.1:8098
 	}
