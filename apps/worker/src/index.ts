@@ -54,26 +54,59 @@ async function refreshSiteStock(cj: CJConnector) {
     const stock = await cj.warehouseStock(sp.supplierProductId, "US").catch(() => null);
     if (stock === null || stock === v.quantity) continue;
     await db.productVariant.update({ where: { id: v.id }, data: { quantity: stock } });
+    // Keep the product on UK carousels if it still has UK (GBP) stock.
+    const otherStock =
+      stock > 0
+        ? 0
+        : await db.productVariant.count({
+            where: { productId: v.productId, currency: "GBP", active: true, quantity: { gt: 0 } },
+          });
     await db.product.update({
       where: { id: v.productId },
-      data: { status: stock > 0 ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK },
+      data: {
+        status: stock > 0 || otherStock > 0 ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK,
+      },
     });
     changed++;
   }
   console.log(`Website carousel stock: ${variants.length} checked, ${changed} changed`);
+
+  // UK sites: GBP variants follow CJ UK-warehouse stock. Only the variant changes, because the
+  // product's status is shared with US sites; a zero-stock variant drops off UK carousels.
+  const ukVariants = await db.productVariant.findMany({
+    where: { sku: { endsWith: "-UK" }, warehouse: "GB", currency: "GBP" },
+    include: { product: { include: { supplierProducts: { where: { country: "GB" }, take: 1 } } } },
+  });
+  let ukChanged = 0;
+  for (const v of ukVariants) {
+    const sp = v.product.supplierProducts[0];
+    if (!sp || v.product.status === ProductStatus.DRAFT) continue;
+    await new Promise((r) => setTimeout(r, 1100));
+    const stock = await cj.warehouseStock(sp.supplierProductId, "GB").catch(() => null);
+    if (stock === null || stock === v.quantity) continue;
+    await db.productVariant.update({ where: { id: v.id }, data: { quantity: stock } });
+    ukChanged++;
+  }
+  if (ukVariants.length)
+    console.log(`UK carousel stock: ${ukVariants.length} checked, ${ukChanged} changed`);
 }
 
 async function linkSites(map: SiteMap) {
   for (const s of map.sites) {
+    // UK sites sell CJ UK-warehouse stock in GBP (UK chapter, docs/UK.md); the rest US/USD.
+    const uk = s.market === "UK";
+    const market = uk ? "UK" : "US";
+    const currency = uk ? "GBP" : "USD";
     const site = await db.website.upsert({
       where: { slug: s.slug },
-      update: {},
+      update: { market, currency },
       create: {
         name: s.name,
         slug: s.slug,
         domain: s.domain,
         category: s.cjCategories[0] ?? "general",
-        market: "US",
+        market,
+        currency,
       },
     });
     const have = await db.productAssignment.count({
@@ -85,7 +118,10 @@ async function linkSites(map: SiteMap) {
     const candidates = await db.product.findMany({
       where: {
         supplierType: SupplierType.CJ,
-        category: { in: s.cjCategories },
+        // UK products come from the UK sync (tag "uk"), which does not set a CJ category.
+        ...(uk
+          ? { tags: { has: "uk" }, category: { in: [...s.cjCategories, "uncategorized"] } }
+          : { category: { in: s.cjCategories } }),
         assignments: { none: { websiteId: site.id, placement: SITE_PLACEMENT } },
       },
       orderBy: { updatedAt: "desc" },

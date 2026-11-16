@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { db, ProductStatus } from "@chambelli/database";
 import { CJConnector } from "@chambelli/cj";
-import { computePrice } from "@chambelli/pricing";
+import { computePrice, ukPrice } from "@chambelli/pricing";
 import { requireAdmin } from "../auth.js";
 import { config } from "../config.js";
 
@@ -10,6 +10,7 @@ import { config } from "../config.js";
  * Website carousels (admin only): see each site's products and approve them in bulk.
  * Approving prices a product at the 30% margin floor with US shipping included, sets its
  * stock from CJ's US warehouse, and makes it ACTIVE so the site's carousel shows it.
+ * UK sites (market "UK", docs/UK.md) are priced in GBP from CJ's UK warehouse instead.
  */
 const PLACEMENT = "article-footer";
 const MARGIN_PERCENT = 30;
@@ -31,14 +32,31 @@ export async function siteRoutes(app: FastifyInstance) {
     const sites = await db.website.findMany({ orderBy: { name: "asc" } });
     const rows = await db.productAssignment.findMany({
       where: { placement: PLACEMENT },
-      select: { websiteId: true, active: true, product: { select: { status: true } } },
+      select: {
+        websiteId: true,
+        active: true,
+        product: {
+          select: {
+            status: true,
+            variants: {
+              where: { currency: "GBP", active: true, quantity: { gt: 0 } },
+              select: { id: true },
+            },
+          },
+        },
+      },
     });
     return sites.map((s) => {
       const mine = rows.filter((r) => r.websiteId === s.id);
+      // A UK product is live only once it has an in-stock GBP price (set by approval).
+      const isLive = (r: (typeof mine)[number]) =>
+        r.active &&
+        r.product.status === ProductStatus.ACTIVE &&
+        (s.market !== "UK" || r.product.variants.length > 0);
       return {
         ...s,
-        live: mine.filter((r) => r.active && r.product.status === ProductStatus.ACTIVE).length,
-        waiting: mine.filter((r) => r.active && r.product.status !== ProductStatus.ACTIVE).length,
+        live: mine.filter(isLive).length,
+        waiting: mine.filter((r) => r.active && !isLive(r)).length,
         removed: mine.filter((r) => !r.active).length,
         approving: approving.has(s.id),
       };
@@ -72,10 +90,13 @@ export async function siteRoutes(app: FastifyInstance) {
     const body = z
       .object({ productIds: z.array(z.string().uuid()).max(50).optional() })
       .parse(req.body ?? {});
-    const shipping = config.sites.usShippingCost;
-    if (shipping === null) throw new Error("SITE_SHIPPING_COST_NOT_SET");
     if (!config.cj.accessToken || !config.cj.baseUrl) throw new Error("CJ_NOT_CONFIGURED");
     const site = await db.website.findUniqueOrThrow({ where: { slug } });
+    const uk = site.market === "UK";
+    const shipping = config.sites.usShippingCost;
+    if (!uk && shipping === null) throw new Error("SITE_SHIPPING_COST_NOT_SET");
+    if (uk && (config.uk.usdToGbpRate === null || config.uk.shippingGbp === null))
+      throw new Error("UK_PRICING_NOT_SET");
     if (approving.has(site.id)) return reply.code(202).send({ started: false, running: true });
 
     const rows = await db.productAssignment.findMany({
@@ -83,7 +104,10 @@ export async function siteRoutes(app: FastifyInstance) {
         websiteId: site.id,
         placement: PLACEMENT,
         active: true,
-        product: { status: { not: ProductStatus.ACTIVE } },
+        // UK: waiting until it has an in-stock GBP price, whatever its US status.
+        product: uk
+          ? { variants: { none: { currency: "GBP", active: true, quantity: { gt: 0 } } } }
+          : { status: { not: ProductStatus.ACTIVE } },
         ...(body.productIds ? { productId: { in: body.productIds } } : {}),
       },
       include: { product: { include: { supplierProducts: true } } },
@@ -91,6 +115,11 @@ export async function siteRoutes(app: FastifyInstance) {
     });
     const cj = new CJConnector(config.cj.accessToken, config.cj.baseUrl);
     approving.add(site.id);
+    if (uk) {
+      void approveUk(cj, rows, req.log).finally(() => approving.delete(site.id));
+      return reply.code(202).send({ started: true, count: rows.length });
+    }
+    const usShipping = shipping as number; // checked above for US sites
     void (async () => {
       for (const [i, r] of rows.entries()) {
         try {
@@ -99,7 +128,7 @@ export async function siteRoutes(app: FastifyInstance) {
           if (!sp || !(cost > 0)) continue;
           if (i > 0) await sleep(CJ_DELAY_MS);
           const stock = await cj.warehouseStock(sp.supplierProductId, "US");
-          const price = ending99(computePrice(cost, shipping, 0, MARGIN_PERCENT));
+          const price = ending99(computePrice(cost, usShipping, 0, MARGIN_PERCENT));
           const sku = `${r.product.sku}-US`;
           await db.productVariant.upsert({
             where: { sku },
@@ -108,13 +137,13 @@ export async function siteRoutes(app: FastifyInstance) {
               sku,
               name: "Ships from US",
               cost,
-              shippingCost: shipping,
+              shippingCost: usShipping,
               price,
               currency: "USD",
               warehouse: "US",
               quantity: stock,
             },
-            update: { cost, shippingCost: shipping, price, quantity: stock, active: true },
+            update: { cost, shippingCost: usShipping, price, quantity: stock, active: true },
           });
           await db.product.update({
             where: { id: r.productId },
@@ -141,4 +170,71 @@ export async function siteRoutes(app: FastifyInstance) {
     });
     return { updated: r.count };
   });
+}
+
+type ApprovalRow = {
+  productId: string;
+  product: {
+    sku: string;
+    status: ProductStatus;
+    supplierProducts: Array<{
+      supplierProductId: string;
+      supplierPrice: unknown;
+      country: string | null;
+    }>;
+  };
+};
+
+/**
+ * UK approval: GBP price from the CJ UK-warehouse cost (30% margin + UK shipping + VAT if set),
+ * stock from CJ's UK warehouse. Only the GBP variant goes live; the product's US status is left
+ * alone unless it was still a draft. Products with no UK stock stay waiting.
+ */
+async function approveUk(
+  cj: CJConnector,
+  rows: ApprovalRow[],
+  log: { warn: (o: object, m: string) => void },
+) {
+  const { usdToGbpRate, shippingGbp, minMarginPercent, vatPercent } = config.uk;
+  for (const [i, r] of rows.entries()) {
+    try {
+      const sp =
+        r.product.supplierProducts.find((p) => p.country === "GB") ?? r.product.supplierProducts[0];
+      const costUsd = sp ? Number(sp.supplierPrice) : 0;
+      const priced = ukPrice(costUsd, shippingGbp!, usdToGbpRate!, minMarginPercent, vatPercent);
+      if (!sp || !priced) continue;
+      if (i > 0) await sleep(CJ_DELAY_MS);
+      const stock = await cj.warehouseStock(sp.supplierProductId, "GB");
+      const price = ending99(priced.price);
+      const sku = `${r.product.sku}-UK`;
+      await db.productVariant.upsert({
+        where: { sku },
+        create: {
+          productId: r.productId,
+          sku,
+          name: "Ships from the UK",
+          cost: priced.cost,
+          shippingCost: priced.shipping,
+          price,
+          currency: "GBP",
+          warehouse: "GB",
+          quantity: stock,
+        },
+        update: {
+          cost: priced.cost,
+          shippingCost: priced.shipping,
+          price,
+          quantity: stock,
+          active: true,
+        },
+      });
+      if (stock > 0 && r.product.status !== ProductStatus.ACTIVE)
+        await db.product.update({
+          where: { id: r.productId },
+          data: { status: ProductStatus.ACTIVE },
+        });
+    } catch (e) {
+      log.warn({ err: e, productId: r.productId }, "UK site approval failed for product");
+    }
+  }
 }

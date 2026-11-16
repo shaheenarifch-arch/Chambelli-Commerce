@@ -22,3 +22,17 @@ Price = (CJ cost × rate + UK shipping) ÷ (1 − margin), then + VAT if set.
 Example: $10 cost × 0.80 = £8.00 + £4.00 shipping = £12.00 ÷ 0.70 = **£17.15**.
 
 CJ allows one request per second, so the UK pass is slow on purpose (about 1 second per product).
+
+## 2. UK sites (market "UK")
+
+In `config/cj-site-map.json`, give a site `"market": "UK"`. The next sync then:
+
+- sets the site to **market UK, currency GBP**, so its carousel shows **£** prices;
+- links it only products from the UK sync (tag `uk`), filtered by its `titleMatch` words
+  (UK sites need `titleMatch`, because UK products have no CJ category);
+- keeps each UK price in step with CJ's UK warehouse stock every 6 hours.
+
+**Approving** a UK site in the hub (Carousels page) prices each product in GBP from its CJ cost
+(30% margin + UK shipping + VAT if set) and checks CJ's UK stock. Products with no UK stock stay
+waiting. If you see "set USD_TO_GBP_RATE and UK_SHIPPING_ESTIMATE_GBP", add those to the server env
+first. CJ allows about one request per second, so approve **one site at a time**.
