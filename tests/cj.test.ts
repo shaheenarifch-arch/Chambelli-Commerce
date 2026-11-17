@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   CJConnector,
   parseCJPrice,
+  inventoryByPidTotals,
   topCategoryIndex,
   normalizeCategory,
   sitesForCategory,
@@ -243,5 +244,23 @@ describe("CJConnector.myProducts (Added Products)", () => {
         ),
     );
     expect(await new CJConnector("tok", "https://cj.test").categoryIdByPid("p1")).toBe("cat-9");
+  });
+});
+
+describe("inventoryByPidTotals", () => {
+  it("reads product-level US stock even when variant inventories only list CN", () => {
+    const data = {
+      inventories: [
+        { areaId: 2, areaEn: "US Warehouse", countryCode: "US", totalInventoryNum: 264 },
+        { areaId: 1, areaEn: "China Warehouse", countryCode: "CN", totalInventoryNum: "900" },
+      ],
+      variantInventories: [{ vid: "1", inventory: [{ countryCode: "CN", totalInventory: 10044 }] }],
+    };
+    expect(inventoryByPidTotals(data)).toEqual({ US: 264, CN: 900 });
+  });
+
+  it("returns nothing for empty or unexpected data", () => {
+    expect(inventoryByPidTotals(null)).toEqual({});
+    expect(inventoryByPidTotals({ inventories: "x" })).toEqual({});
   });
 });
