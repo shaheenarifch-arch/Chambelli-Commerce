@@ -16,6 +16,9 @@ import { checkAmazonListings } from "./amazon.js";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = Number(process.env.CJ_SYNC_MAX_PAGES ?? 50);
+// US-warehouse pass: only these products can go live on US site carousels. Help: docs/CJ-SITE-MAP.md
+const US_MAX_PAGES = Number(process.env.CJ_SYNC_US_MAX_PAGES ?? 30);
+export const US_TAG = "us";
 let running = false;
 
 // Which CJ categories feed which website. Help: docs/CJ-SITE-MAP.md
@@ -109,6 +112,23 @@ async function linkSites(map: SiteMap) {
         currency,
       },
     });
+    if (!uk) {
+      // US sites: drop waiting links to products CJ has no US-warehouse stock for (they can
+      // never go live). Live products, removed ones and your CJ "Added Products" are kept.
+      const pruned = await db.productAssignment.deleteMany({
+        where: {
+          websiteId: site.id,
+          placement: SITE_PLACEMENT,
+          active: true,
+          product: {
+            status: { not: ProductStatus.ACTIVE },
+            NOT: [{ tags: { has: US_TAG } }, { tags: { has: ADDED_TAG } }],
+          },
+        },
+      });
+      if (pruned.count)
+        console.log(`${s.domain}: dropped ${pruned.count} products with no US stock`);
+    }
     const have = await db.productAssignment.count({
       where: { websiteId: site.id, placement: SITE_PLACEMENT },
     });
@@ -121,7 +141,7 @@ async function linkSites(map: SiteMap) {
         // UK products come from the UK sync (tag "uk"), which does not set a CJ category.
         ...(uk
           ? { tags: { has: "uk" }, category: { in: [...s.cjCategories, "uncategorized"] } }
-          : { category: { in: s.cjCategories } }),
+          : { category: { in: s.cjCategories }, tags: { has: US_TAG } }),
         assignments: { none: { websiteId: site.id, placement: SITE_PLACEMENT } },
       },
       orderBy: { updatedAt: "desc" },
@@ -275,6 +295,33 @@ export async function sync() {
         }
       }
     }
+    // US-warehouse pass: products with CJ US stock get the "us" tag, which US carousels need.
+    await new Promise((r) => setTimeout(r, 1100));
+    let usSaved = 0;
+    try {
+      for await (const page of cj.allProducts(PAGE_SIZE, US_MAX_PAGES, 1100, {
+        countryCode: "US",
+        minInventory: 1,
+      })) {
+        for (const item of page) {
+          try {
+            const product = await upsertItem(supplier.id, item, categoryFor(item, index, map));
+            if (!product.tags.includes(US_TAG))
+              await db.product.update({
+                where: { id: product.id },
+                data: { tags: { push: US_TAG } },
+              });
+            usSaved++;
+          } catch (e) {
+            errors.push({ pid: item.pid, message: e instanceof Error ? e.message : "unknown" });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("CJ US-warehouse sync failed", e);
+    }
+    processed += usSaved;
+    console.log(`CJ US warehouse: ${usSaved} products tagged "${US_TAG}"`);
     await db.syncJob.update({
       where: { id: job.id },
       data: {
