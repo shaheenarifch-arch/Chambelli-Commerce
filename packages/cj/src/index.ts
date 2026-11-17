@@ -126,8 +126,8 @@ export interface CJListOptions {
 }
 
 const CJInventory = z.object({
-  countryCode: z.string().optional(),
-  totalInventory: z.union([z.number(), z.string()]).optional(),
+  countryCode: z.string().nullish(),
+  totalInventory: z.union([z.number(), z.string()]).nullish(),
 });
 const CJProductDetail = z.object({
   variants: z
@@ -171,6 +171,16 @@ export function warehouseTotals(data: unknown): Record<string, number> {
     totals[code] = (totals[code] ?? 0) + Math.floor(n);
   }
   return totals;
+}
+
+/**
+ * Stock per warehouse country from a /product/stock/getInventoryByPid response.
+ * Uses the product-level `inventories` list: CJ's per-variant inventories (in /product/query)
+ * often leave out the US warehouse, which made every US product look out of stock.
+ */
+export function inventoryByPidTotals(data: unknown): Record<string, number> {
+  const list = (data as { inventories?: unknown } | null)?.inventories;
+  return warehouseTotals(Array.isArray(list) ? list : []);
 }
 
 export interface CJOrderResult {
@@ -274,8 +284,18 @@ export class CJConnector {
 
   /** Stock CJ holds for a product in one warehouse country (e.g. "CA"). */
   async warehouseStock(pid: string, countryCode: string): Promise<number> {
-    const q = new URLSearchParams({ pid, countryCode: countryCode.toUpperCase() });
-    return countryStock(await this.get(`/product/query?${q}`), countryCode);
+    const code = countryCode.toUpperCase();
+    try {
+      // Product-level stock per warehouse (GET /product/stock/getInventoryByPid).
+      const totals = inventoryByPidTotals(
+        await this.get(`/product/stock/getInventoryByPid?${new URLSearchParams({ pid })}`),
+      );
+      return totals[code] ?? 0;
+    } catch {
+      // Fallback: per-variant inventories from the product detail.
+      const q = new URLSearchParams({ pid, countryCode: code });
+      return countryStock(await this.get(`/product/query?${q}`), code);
+    }
   }
 
   /**
