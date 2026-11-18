@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { db, OrderStatus, PaymentProvider } from "@chambelli/database";
 import { CartService } from "@chambelli/cart";
@@ -55,11 +55,34 @@ const ReturnBody = z.object({
     .max(50),
 });
 
+/** The storefront page PayPal sends the shopper back to (built here, never taken from the browser). */
+function paypalReturnUrls(req: FastifyRequest, site: { market: string; slug: string }) {
+  const base = (config.publicApiBaseUrl || `${req.protocol}://${req.host}`).replace(/\/$/, "");
+  const market = site.market.toLowerCase();
+  const back = `${base}/${encodeURIComponent(market)}/checkout/return?site=${encodeURIComponent(site.slug)}`;
+  return { returnUrl: back, cancelUrl: `${back}&cancelled=1` };
+}
+
 export function paypalClient() {
   const { clientId, clientSecret, baseUrl } = config.paypal;
   return clientId && clientSecret && baseUrl
     ? new PayPalPayments({ clientId, clientSecret, baseUrl })
     : null;
+}
+
+export type PaymentMode = "off" | "sandbox" | "live";
+
+/**
+ * Whether each payment provider is switched off, in sandbox/test mode (no real money moves) or
+ * live. Read from the keys themselves so the storefront can warn before real buyers check out.
+ */
+export function paymentModes(): { paypal: PaymentMode; stripe: PaymentMode } {
+  const { clientId, clientSecret, baseUrl } = config.paypal;
+  const paypal: PaymentMode =
+    !clientId || !clientSecret || !baseUrl ? "off" : /sandbox/i.test(baseUrl) ? "sandbox" : "live";
+  const key = config.stripe.secretKey;
+  const stripe: PaymentMode = !key ? "off" : /^(sk|rk)_live_/.test(key) ? "live" : "sandbox";
+  return { paypal, stripe };
 }
 
 export async function commerceRoutes(app: FastifyInstance) {
@@ -80,6 +103,12 @@ export async function commerceRoutes(app: FastifyInstance) {
   app.get("/v1/cart/:cartId", async (req) => {
     const { cartId } = z.object({ cartId: z.string().uuid() }).parse(req.params);
     return carts.summary(cartId);
+  });
+
+  /** Public: lets the storefront show a test-mode notice, or hide checkout when payments are off. */
+  app.get("/v1/payments/status", async (_req, reply) => {
+    reply.header("Cache-Control", "no-store");
+    return paymentModes();
   });
 
   app.post("/v1/checkout", strict, async (req, reply) => {
@@ -151,7 +180,7 @@ export async function commerceRoutes(app: FastifyInstance) {
             order.id,
             `stripe-${b.idempotencyKey}`,
           )
-        : await paypal!.create(order.id, `paypal-${b.idempotencyKey}`);
+        : await paypal!.create(order.id, `paypal-${b.idempotencyKey}`, paypalReturnUrls(req, site));
     return {
       orderId: order.id,
       orderNumber: order.orderNumber,

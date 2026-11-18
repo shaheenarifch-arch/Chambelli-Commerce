@@ -43,7 +43,7 @@ jobs:
       - run: pnpm db:generate
       - run: pnpm build
       - run: pnpm typecheck
-      - run: node --check apps/api/public/widget.js
+      - run: node --check apps/api/public/widget.js && node --check apps/api/public/product.js
       - name: Unit tests
         run: pnpm test
       - name: Apply schema to a real database
