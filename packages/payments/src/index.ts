@@ -148,7 +148,15 @@ export class PayPalPayments {
     return ((await r.json()) as { access_token: string }).access_token;
   }
 
-  async create(orderId: string, idempotencyKey: string) {
+  /**
+   * @param urls Where PayPal sends the shopper back after approving or cancelling (the
+   *   storefront's checkout return page). Without them the shopper is left on PayPal.
+   */
+  async create(
+    orderId: string,
+    idempotencyKey: string,
+    urls?: { returnUrl: string; cancelUrl: string },
+  ) {
     const existing = await db.payment.findUnique({ where: { idempotencyKey } });
     if (existing?.providerPaymentId) {
       const meta = (existing.metadata ?? {}) as { approveUrl?: string };
@@ -180,6 +188,16 @@ export class PayPalPayments {
             },
           },
         ],
+        ...(urls
+          ? {
+              application_context: {
+                return_url: urls.returnUrl,
+                cancel_url: urls.cancelUrl,
+                user_action: "PAY_NOW",
+                shipping_preference: "NO_SHIPPING",
+              },
+            }
+          : {}),
       }),
     });
     if (!r.ok) throw new Error(`PAYPAL_CREATE_${r.status}`);

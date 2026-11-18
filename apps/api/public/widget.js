@@ -8,7 +8,9 @@
  *   data-title="Recommended Products"
  *   data-product-url="https://tech.example.com/shop/{slug}"></script>
  *
- * data-product-url is optional; {slug} and {id} are replaced per product.
+ * data-product-url is optional; {slug} and {id} are replaced per product. Without it, each card
+ * opens the Chambelli product page for the site's market (API_HOST/us/p/{slug}?site=..., or /ca
+ * and /uk), where the shopper picks a size, adds to cart and checks out.
  */
 (() => {
   const s = document.currentScript;
@@ -33,6 +35,8 @@
       return "";
     }
   };
+  const MARKET_PATHS = { US: "us", CA: "ca", UK: "uk" };
+  let marketPath = "us";
   const productUrl = (p) =>
     urlTemplate
       ? safeUrl(
@@ -40,7 +44,9 @@
             .replace("{slug}", encodeURIComponent(p.slug))
             .replace("{id}", encodeURIComponent(p.id)),
         )
-      : "";
+      : safeUrl(
+          `${api}/${marketPath}/p/${encodeURIComponent(p.slug)}?site=${encodeURIComponent(site)}`,
+        );
   const money = (amount, currency) => {
     try {
       return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
@@ -113,6 +119,7 @@
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .then((d) => {
       const products = Array.isArray(d.products) ? d.products : [];
+      marketPath = MARKET_PATHS[String(d.site?.market || "US").toUpperCase()] || "us";
       if (!products.length) return host.remove();
       const cards = products
         .map((p) => {

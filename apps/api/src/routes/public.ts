@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { db, EventType } from "@chambelli/database";
 import { FeedService } from "@chambelli/feeds";
@@ -12,6 +12,68 @@ const canadaPagePath = new URL("../../public/ca.html", import.meta.url);
 let canadaPage: string | null = null;
 const ukPagePath = new URL("../../public/uk.html", import.meta.url);
 let ukPage: string | null = null;
+const productPagePath = new URL("../../public/product.html", import.meta.url);
+let productPage: string | null = null;
+const productScriptPath = new URL("../../public/product.js", import.meta.url);
+let productScript: string | null = null;
+
+/** Storefront markets with a product page: /us/p/{slug}, /ca/p/{slug}, /uk/p/{slug}. */
+const MARKETS = {
+  us: { market: "US", lang: "en-US", store: "Chambelli" },
+  ca: { market: "CA", lang: "en-CA", store: "Chambelli Canada" },
+  uk: { market: "UK", lang: "en-GB", store: "Chambelli UK" },
+} as const;
+type MarketKey = keyof typeof MARKETS;
+
+const html = (v: unknown) =>
+  String(v ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
+
+/**
+ * A product and the site it is sold through. The site comes from ?site= (the carousel that sent
+ * the shopper) when it is active and in this market; otherwise the first site carrying it.
+ */
+async function findProductForSale(slug: string, siteSlug?: string, market?: string) {
+  const product = await db.product.findUnique({
+    where: { slug },
+    include: {
+      variants: { where: { active: true }, orderBy: { price: "asc" } },
+      assignments: { where: { active: true }, include: { website: true } },
+    },
+  });
+  if (!product || product.status !== "ACTIVE") return null;
+  const fits = (w: { active: boolean; market: string } | null | undefined) =>
+    !!w && w.active && (!market || w.market === market);
+  let site = siteSlug ? await db.website.findUnique({ where: { slug: siteSlug } }) : null;
+  if (!fits(site)) site = product.assignments.map((a) => a.website).find(fits) ?? null;
+  if (!site) return null;
+  const variants = product.variants.filter((v) => v.currency === site.currency);
+  return { product, site, variants };
+}
+
+function securityHeaders(base: string) {
+  let origin = "";
+  try {
+    origin = new URL(base).origin;
+  } catch {
+    // a bad PUBLIC_API_BASE_URL falls back to same-origin only
+  }
+  const self = origin ? `'self' ${origin}` : "'self'";
+  return [
+    "default-src 'self'",
+    `script-src ${self}`,
+    "style-src 'self' 'unsafe-inline'",
+    // Product photos come from CJ's image hosts.
+    "img-src 'self' https: data:",
+    `connect-src ${self}`,
+    "frame-ancestors 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join("; ");
+}
 
 const AnalyticsBody = z.object({
   websiteSlug: z.string().min(1).max(100),
@@ -100,6 +162,114 @@ export async function publicRoutes(app: FastifyInstance) {
       .type("text/html; charset=utf-8")
       .header("Cache-Control", "public, max-age=300")
       .send(ukPage.replaceAll("{{API_BASE}}", safeBase));
+  });
+
+  /**
+   * Product data for the storefront product page: photo, sizes/options, prices and the site
+   * (website id) the cart belongs to.
+   */
+  app.get("/v1/products/:slug", async (req, reply) => {
+    const { slug } = z.object({ slug: z.string().min(1).max(200) }).parse(req.params);
+    const q = z
+      .object({
+        site: z.string().max(100).optional(),
+        market: z.enum(["US", "CA", "UK"]).optional(),
+      })
+      .parse(req.query);
+    const found = await findProductForSale(slug, q.site, q.market);
+    if (!found) return reply.code(404).send({ error: "PRODUCT_NOT_FOUND" });
+    const { product, site, variants } = found;
+    reply.header("Cache-Control", "public, max-age=60");
+    return {
+      site: {
+        id: site.id,
+        slug: site.slug,
+        name: site.name,
+        domain: site.domain,
+        market: site.market,
+        currency: site.currency,
+      },
+      product: {
+        id: product.id,
+        slug: product.slug,
+        title: product.title,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        category: product.category,
+      },
+      variants: variants.map((v) => ({
+        id: v.id,
+        name: v.name,
+        price: Number(v.price),
+        compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
+        currency: v.currency,
+        inStock: v.quantity > 0,
+      })),
+    };
+  });
+
+  for (const key of Object.keys(MARKETS) as MarketKey[]) {
+    const m = MARKETS[key];
+    const sendPage = async (
+      req: FastifyRequest,
+      reply: FastifyReply,
+      meta: { title: string; description: string; image?: string | null; status?: number },
+    ) => {
+      productPage ??= await readFile(productPagePath, "utf8");
+      const base = (config.publicApiBaseUrl || `${req.protocol}://${req.host}`).replace(/\/$/, "");
+      const safeBase = base.replace(/[&<>"']/g, "");
+      const page = productPage
+        .replaceAll("{{API_BASE}}", safeBase)
+        .replaceAll("{{MARKET}}", m.market)
+        .replaceAll("{{LANG}}", m.lang)
+        .replaceAll("{{STORE}}", html(m.store))
+        .replaceAll("{{TITLE}}", html(meta.title))
+        .replaceAll("{{DESCRIPTION}}", html(meta.description))
+        .replaceAll("{{IMAGE}}", html(meta.image ?? ""));
+      return reply
+        .code(meta.status ?? 200)
+        .type("text/html; charset=utf-8")
+        .header("Cache-Control", "public, max-age=300")
+        .header("Content-Security-Policy", securityHeaders(base))
+        .send(page);
+    };
+
+    /** Product page every carousel card links to: photo, price, size, add to cart, checkout. */
+    app.get(`/${key}/p/:slug`, async (req, reply) => {
+      const { slug } = z.object({ slug: z.string().min(1).max(200) }).parse(req.params);
+      const { site } = z.object({ site: z.string().max(100).optional() }).parse(req.query);
+      const found = await findProductForSale(slug, site, m.market);
+      if (!found)
+        return sendPage(req, reply, {
+          title: `Product not found · ${m.store}`,
+          description: "This product is no longer available.",
+          status: 404,
+        });
+      const desc = (found.product.description ?? "").replace(/\s+/g, " ").trim().slice(0, 160);
+      return sendPage(req, reply, {
+        title: `${found.product.title} · ${m.store}`,
+        description: desc || `${found.product.title}, delivered by ${m.store}.`,
+        image: found.product.imageUrl,
+      });
+    });
+
+    /** PayPal sends the shopper back here; the page captures the payment and shows the result. */
+    app.get(`/${key}/checkout/return`, async (req, reply) =>
+      sendPage(req, reply, {
+        title: `Order status · ${m.store}`,
+        description: "Your Chambelli order status.",
+      }),
+    );
+  }
+
+  /** Script for the product and checkout-return pages (same origin, so the page CSP allows it). */
+  app.get("/product.js", async (_req, reply) => {
+    productScript ??= await readFile(productScriptPath, "utf8");
+    return reply
+      .type("application/javascript; charset=utf-8")
+      .header("Cache-Control", "public, max-age=300")
+      .header("Cross-Origin-Resource-Policy", "cross-origin")
+      .send(productScript);
   });
 
   /** The embeddable widget, served from the API so sites need only one script tag. */
