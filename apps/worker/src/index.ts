@@ -132,8 +132,38 @@ async function linkSites(map: SiteMap) {
     const have = await db.productAssignment.count({
       where: { websiteId: site.id, placement: SITE_PLACEMENT },
     });
-    const room = map.productsPerSite - have;
+    let room = map.productsPerSite - have;
     if (room <= 0) continue;
+    if (!uk) {
+      // Most relevant first: products found by searching this site's own terms in CJ's US
+      // warehouse (tag "site:<slug>", see syncSiteTerms). Help: docs/CJ-SITE-MAP.md
+      const termHits = await db.product.findMany({
+        where: {
+          supplierType: SupplierType.CJ,
+          AND: [{ tags: { has: siteTag(s.slug) } }, { tags: { has: US_TAG } }],
+          assignments: { none: { websiteId: site.id, placement: SITE_PLACEMENT } },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: room * 3,
+        select: { id: true, title: true },
+      });
+      const picked = termHits
+        .filter((p) => titleFitsSite(p.title, { titleExclude: s.titleExclude }))
+        .slice(0, room);
+      if (picked.length) {
+        await db.productAssignment.createMany({
+          data: picked.map((p) => ({
+            productId: p.id,
+            websiteId: site.id,
+            placement: SITE_PLACEMENT,
+          })),
+          skipDuplicates: true,
+        });
+        console.log(`Linked ${picked.length} term-matched CJ products to ${s.domain} (drafts)`);
+        room -= picked.length;
+      }
+      if (room <= 0) continue;
+    }
     // Fetch extra so the titleMatch/titleExclude rules can still fill the room.
     const candidates = await db.product.findMany({
       where: {
@@ -164,6 +194,77 @@ async function linkSites(map: SiteMap) {
       skipDuplicates: true,
     });
     console.log(`Linked ${products.length} CJ products to ${s.domain} (drafts)`);
+  }
+}
+
+/** Tag on products found by searching a site's own terms (most relevant for that site). */
+const siteTag = (slug: string) => `site:${slug}`;
+const TERM_PAGE_SIZE = 50;
+
+/**
+ * Most-relevant sourcing for US sites that are short of products: searches each of the site's
+ * `terms` in CJ's US warehouse (in-stock only) and keeps results whose title matches the site
+ * (its titleMatch words, or the search term itself) and avoids its titleExclude words. Those
+ * products get the "us" and "site:<slug>" tags, and linkSites offers them to that site first.
+ * One CJ request per term, about one per second. Help: docs/CJ-SITE-MAP.md
+ */
+async function syncSiteTerms(
+  cj: CJConnector,
+  supplierId: string,
+  index: Map<string, string>,
+  map: SiteMap,
+  errors: Array<{ pid: string; message: string }>,
+) {
+  for (const s of map.sites) {
+    if (s.market === "UK" || !s.terms?.length) continue;
+    const site = await db.website.findUnique({ where: { slug: s.slug } });
+    const have = site
+      ? await db.productAssignment.count({
+          where: { websiteId: site.id, placement: SITE_PLACEMENT, active: true },
+        })
+      : 0;
+    const room = map.productsPerSite - have;
+    if (room <= 0) continue;
+    let found = 0;
+    for (const term of s.terms) {
+      if (found >= room * 2) break;
+      await new Promise((r) => setTimeout(r, 1100)); // CJ allows about one request per second
+      let items: CJItem[] = [];
+      try {
+        items = await cj.listProducts(1, TERM_PAGE_SIZE, {
+          productNameEn: term,
+          countryCode: "US",
+          minInventory: 1,
+        });
+      } catch (e) {
+        console.warn(
+          `${s.domain}: CJ search "${term}" failed:`,
+          e instanceof Error ? e.message : e,
+        );
+        continue;
+      }
+      for (const item of items) {
+        const title = item.productNameEn ?? "";
+        const relevant =
+          titleFitsSite(title, s) ||
+          (title.toLowerCase().includes(term.toLowerCase()) &&
+            titleFitsSite(title, { titleExclude: s.titleExclude }));
+        if (!relevant) continue;
+        try {
+          const product = await upsertItem(supplierId, item, categoryFor(item, index, map));
+          const add = [US_TAG, siteTag(s.slug)].filter((t) => !product.tags.includes(t));
+          if (add.length)
+            await db.product.update({
+              where: { id: product.id },
+              data: { tags: { push: add } },
+            });
+          found++;
+        } catch (e) {
+          errors.push({ pid: item.pid, message: e instanceof Error ? e.message : "unknown" });
+        }
+      }
+    }
+    console.log(`${s.domain}: ${found} relevant US-stock products found from its search terms`);
   }
 }
 
@@ -334,6 +435,11 @@ export async function sync() {
     });
     console.log(`CJ sync finished: ${processed} products, ${errors.length} failures`);
     if (map) {
+      try {
+        await syncSiteTerms(cj, supplier.id, index, map, errors);
+      } catch (e) {
+        console.error("CJ site-term sourcing failed", e);
+      }
       try {
         await linkSites(map);
       } catch (e) {

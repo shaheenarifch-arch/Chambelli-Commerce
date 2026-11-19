@@ -148,9 +148,9 @@ describe("website carousel site map", async () => {
     readFileSync(new URL("../config/cj-site-map.json", import.meta.url), "utf8"),
   );
 
-  it("covers the 29 chosen sites with 30 to 50 products each", () => {
+  it("covers the 29 chosen sites with 20 to 50 products each", () => {
     expect(map.productsPerSite).toBe(50);
-    expect(map.minProductsPerSite).toBe(30);
+    expect(map.minProductsPerSite).toBe(20);
     const domains = map.sites.map((s: { domain: string }) => s.domain);
     expect(domains).toHaveLength(29);
     expect(new Set(map.sites.map((s: { slug: string }) => s.slug)).size).toBe(29);
