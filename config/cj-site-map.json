@@ -1,7 +1,7 @@
 {
-  "_help": "Which CJ categories feed which website (30 to 50 products each). Edit this file to change the mapping; no code change needed. titleMatch: a product title must contain one of these words; titleExclude: never link a product whose title contains one of these. Guide: docs/CJ-SITE-MAP.md",
+  "_help": "Which CJ categories feed which website (20 to 50 products each). Edit this file to change the mapping; no code change needed. titleMatch: a product title must contain one of these words; titleExclude: never link a product whose title contains one of these. Guide: docs/CJ-SITE-MAP.md",
   "productsPerSite": 50,
-  "minProductsPerSite": 30,
+  "minProductsPerSite": 20,
   "sites": [
     {
       "slug": "shopdress",

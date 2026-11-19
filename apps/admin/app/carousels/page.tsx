@@ -4,8 +4,8 @@ import { approve, setActive } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-/** Each carousel should carry 30 to 50 products (config/cj-site-map.json). */
-const MIN = 30;
+/** Each carousel should carry 20 to 50 products (config/cj-site-map.json). */
+const MIN = 20;
 const MAX = 50;
 /** Public address of the widget, as sites load it. */
 const WIDGET_BASE = process.env.PUBLIC_WIDGET_BASE_URL ?? "https://chambelli.getservices.ai";

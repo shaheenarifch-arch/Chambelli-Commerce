@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 
 const api = process.env.PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 const NETWORK_TARGET = 15;
-/** Each site carousel should carry 30 to 50 products (config/cj-site-map.json). */
-const MIN_PER_SITE = 30;
+/** Each site carousel should carry 20 to 50 products (config/cj-site-map.json). */
+const MIN_PER_SITE = 20;
 const MAX_PER_SITE = 50;
 
 type Product = {
