@@ -97,7 +97,25 @@ export interface SiteMap {
   productsPerSite: number;
   /** Fewest products a site should have; the dashboard flags sites below it (30). */
   minProductsPerSite?: number;
+  /**
+   * Words whose products belong to one site only, e.g. { "shorts": "shopdress" }: every other
+   * site treats the word as a titleExclude. Help: docs/CJ-SITE-MAP.md
+   */
+  onlyOnSite?: Record<string, string>;
   sites: SiteMapEntry[];
+}
+
+/** Adds each onlyOnSite word to the titleExclude list of every other site. */
+export function applyOnlyOnSite(map: SiteMap): SiteMap {
+  const rules = Object.entries(map.onlyOnSite ?? {});
+  if (!rules.length) return map;
+  return {
+    ...map,
+    sites: map.sites.map((s) => {
+      const extra = rules.filter(([, slug]) => slug !== s.slug).map(([word]) => word);
+      return extra.length ? { ...s, titleExclude: [...(s.titleExclude ?? []), ...extra] } : s;
+    }),
+  };
 }
 
 /** True when a product title passes a site's titleMatch / titleExclude rules. */

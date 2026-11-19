@@ -7,6 +7,8 @@ import {
   topCategoryIndex,
   normalizeCategory,
   sitesForCategory,
+  titleFitsSite,
+  applyOnlyOnSite,
   type SiteMap,
 } from "../packages/cj/src/index.js";
 
@@ -262,5 +264,22 @@ describe("inventoryByPidTotals", () => {
   it("returns nothing for empty or unexpected data", () => {
     expect(inventoryByPidTotals(null)).toEqual({});
     expect(inventoryByPidTotals({ inventories: "x" })).toEqual({});
+  });
+});
+
+describe("onlyOnSite", () => {
+  it("keeps shorts on shopdress only", () => {
+    const map = applyOnlyOnSite({
+      productsPerSite: 50,
+      onlyOnSite: { shorts: "shopdress" },
+      sites: [
+        { slug: "shopdress", name: "S", domain: "shopdress.us", cjCategories: [], terms: [] },
+        { slug: "womenstyle", name: "W", domain: "womenstyle.win", cjCategories: [], terms: [] },
+      ],
+    });
+    const [shop, women] = map.sites;
+    expect(titleFitsSite("Women's Denim Shorts", shop!)).toBe(true);
+    expect(titleFitsSite("Women's Denim Shorts", women!)).toBe(false);
+    expect(titleFitsSite("Short Sleeve Blouse", women!)).toBe(true);
   });
 });

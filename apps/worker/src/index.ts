@@ -7,6 +7,7 @@ import {
   topCategoryIndex,
   normalizeCategory,
   titleFitsSite,
+  applyOnlyOnSite,
   type CJItem,
   type SiteMap,
 } from "@chambelli/cj";
@@ -28,7 +29,9 @@ const SITE_PLACEMENT = "article-footer";
 
 async function loadSiteMap(): Promise<SiteMap | null> {
   try {
-    return JSON.parse(await readFile(process.env.CJ_SITE_MAP_PATH ?? SITE_MAP_URL, "utf8"));
+    return applyOnlyOnSite(
+      JSON.parse(await readFile(process.env.CJ_SITE_MAP_PATH ?? SITE_MAP_URL, "utf8")),
+    );
   } catch (e) {
     console.warn("CJ site map not loaded:", e instanceof Error ? e.message : e);
     return null;
@@ -92,6 +95,48 @@ async function refreshSiteStock(cj: CJConnector) {
   }
   if (ukVariants.length)
     console.log(`UK carousel stock: ${ukVariants.length} checked, ${ukChanged} changed`);
+}
+
+/**
+ * onlyOnSite rule (e.g. all shorts go to shopdress.us): links every US-warehouse CJ product
+ * whose title has the word to that site as a draft, and takes it off every other site's
+ * carousel. Products without US-warehouse stock are never linked. Help: docs/CJ-SITE-MAP.md
+ */
+async function routeOnlyOnSite(map: SiteMap) {
+  for (const [word, slug] of Object.entries(map.onlyOnSite ?? {})) {
+    const target = await db.website.findUnique({ where: { slug } });
+    if (!target) continue;
+    const products = await db.product.findMany({
+      where: {
+        supplierType: SupplierType.CJ,
+        tags: { has: US_TAG },
+        title: { contains: word, mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    if (!products.length) continue;
+    const ids = products.map((p) => p.id);
+    const linked = await db.productAssignment.createMany({
+      data: ids.map((productId) => ({
+        productId,
+        websiteId: target.id,
+        placement: SITE_PLACEMENT,
+      })),
+      skipDuplicates: true,
+    });
+    const removed = await db.productAssignment.updateMany({
+      where: {
+        productId: { in: ids },
+        placement: SITE_PLACEMENT,
+        websiteId: { not: target.id },
+        active: true,
+      },
+      data: { active: false },
+    });
+    console.log(
+      `"${word}" only on ${target.domain}: linked ${linked.count} new, removed from other sites ${removed.count}`,
+    );
+  }
 }
 
 async function linkSites(map: SiteMap) {
@@ -444,6 +489,11 @@ export async function sync() {
         await linkSites(map);
       } catch (e) {
         console.error("Linking CJ products to sites failed", e);
+      }
+      try {
+        await routeOnlyOnSite(map);
+      } catch (e) {
+        console.error("onlyOnSite routing failed", e);
       }
       try {
         await refreshSiteStock(cj);
