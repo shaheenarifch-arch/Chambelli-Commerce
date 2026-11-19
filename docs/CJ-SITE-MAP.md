@@ -23,16 +23,16 @@ ShopDress (shopdress.us) keeps its own department plan inside `scripts/cj-shortl
 
 ## Fields
 
-| Field                | Meaning                                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `productsPerSite`    | Most products per site carousel (50).                                                                        |
-| `minProductsPerSite` | Fewest products a site should have (20); the dashboard flags sites below it.                                 |
-| `slug`               | Site key used by the widget (`data-site`).                                                                   |
-| `domain`             | The site's domain.                                                                                           |
-| `cjCategories`       | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter. |
+| Field                | Meaning                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `productsPerSite`    | Most products per site carousel (50).                                                                                                                                          |
+| `minProductsPerSite` | Fewest products a site should have (20); the dashboard flags sites below it.                                                                                                   |
+| `slug`               | Site key used by the widget (`data-site`).                                                                                                                                     |
+| `domain`             | The site's domain.                                                                                                                                                             |
+| `cjCategories`       | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter.                                                                   |
 | `terms`              | Search words. The worker searches them in CJ's US warehouse for sites short of products and offers the matches to that site first (most relevant). Also used by the shortlist. |
-| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safety and protective gear).    |
-| `titleExclude`       | Optional. Never link a product whose title contains one of these words (e.g. no prescription items).         |
+| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safety and protective gear).                                                                      |
+| `titleExclude`       | Optional. Never link a product whose title contains one of these words (e.g. no prescription items).                                                                           |
 
 ## Running the shortlist
 
