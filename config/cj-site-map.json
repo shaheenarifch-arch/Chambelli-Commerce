@@ -360,7 +360,20 @@
         "pulse oximeter",
         "heating pad",
         "compression sleeve",
-        "walking cane"
+        "walking cane",
+        "massage gun",
+        "foot massager",
+        "ankle brace",
+        "wrist brace",
+        "hot cold pack",
+        "compression socks",
+        "shower chair",
+        "grab bar",
+        "bed rail",
+        "reacher grabber",
+        "rollator walker",
+        "orthopedic pillow",
+        "tens unit"
       ],
       "titleMatch": [
         "first aid",
@@ -382,7 +395,24 @@
         "pill case",
         "arm sling",
         "wrist brace",
-        "back brace"
+        "back brace",
+        "massage gun",
+        "foot massager",
+        "ankle brace",
+        "hot cold pack",
+        "cold pack",
+        "compression socks",
+        "shower chair",
+        "shower stool",
+        "grab bar",
+        "bed rail",
+        "reacher",
+        "grabber",
+        "rollator",
+        "orthopedic",
+        "cervical pillow",
+        "tens unit",
+        "muscle stimulator"
       ],
       "titleExclude": [
         "prescription",
@@ -552,7 +582,18 @@
         "rifle cabinet",
         "rifle gun safe",
         "long gun cabinet",
-        "rifle locker"
+        "rifle locker",
+        "pistol safe",
+        "handgun safe",
+        "car gun safe",
+        "fireproof safe",
+        "money safe",
+        "steel lock box",
+        "ear protection",
+        "safety glasses",
+        "trauma kit",
+        "bleeding control kit",
+        "emergency light"
       ],
       "titleMatch": [
         "safe",
@@ -610,7 +651,10 @@
         "gun locker",
         "rifle cabinet",
         "rifle locker",
-        "gun storage"
+        "gun storage",
+        "ear protection",
+        "emergency light",
+        "bleeding control"
       ],
       "titleExclude": [
         "holster",
@@ -635,7 +679,14 @@
         "bullet proof",
         "stun gun",
         "taser",
-        "knife"
+        "knife",
+        "go kart",
+        "kart",
+        "bunk bed",
+        "trampoline",
+        "stock pot",
+        "bug zapper",
+        "mosquito"
       ]
     },
     {
@@ -722,7 +773,18 @@
         "paper shredder",
         "whiteboard",
         "packing tape dispenser",
-        "poly mailer"
+        "poly mailer",
+        "laminator",
+        "stapler",
+        "shipping scale",
+        "postal scale",
+        "led open sign",
+        "monitor stand",
+        "laptop stand",
+        "file cabinet",
+        "cash box",
+        "bill counter",
+        "document scanner"
       ],
       "titleMatch": [
         "receipt printer",
@@ -737,8 +799,6 @@
         "counterfeit",
         "security camera",
         "surveillance",
-        "doorbell",
-        "door chime",
         "desk organizer",
         "business card",
         "label maker",
@@ -749,9 +809,32 @@
         "mailer",
         "shipping label",
         "safe",
-        "pos "
+        "pos ",
+        "laminator",
+        "stapler",
+        "shipping scale",
+        "postal scale",
+        "open sign",
+        "monitor stand",
+        "laptop stand",
+        "file cabinet",
+        "filing cabinet",
+        "cash box"
       ],
-      "titleExclude": ["toy", "kids", "baby", "sofa", "bed frame", "gun"]
+      "titleExclude": [
+        "toy",
+        "kids",
+        "baby",
+        "sofa",
+        "bed frame",
+        "gun",
+        "stock pot",
+        "bug zapper",
+        "bunk bed",
+        "wood chipper",
+        "dachshund",
+        "pool"
+      ]
     },
     {
       "slug": "costumescout",

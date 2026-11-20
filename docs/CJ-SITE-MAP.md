@@ -31,9 +31,9 @@ ShopDress (shopdress.us) keeps its own department plan inside `scripts/cj-shortl
 | `domain`             | The site's domain.                                                                                                                                                                                                                             |
 | `cjCategories`       | CJ top-level categories, spelled as in CJ (e.g. `"Health, Beauty & Hair"`). Case and `&`/`and` don't matter.                                                                                                                                   |
 | `terms`              | Search words. The worker searches them in CJ's US warehouse for sites short of products and offers the matches to that site first (most relevant). Also used by the shortlist.                                                                 |
-| `titleMatch`         | Optional. A product title must contain one of these words (firearmsafety.us: safety and protective gear).                                                                                                                                      |
+| `titleMatch`         | Optional. A product title must contain one of these as a whole word, plurals included ("safe" matches "Safes" but not "Safety").                                                                                                               |
 | `onlyOnSite`         | Optional, top level. `{ "shorts": "shopdress" }`: every CJ **US-warehouse** product whose title has the word is linked to that site (as a draft to approve) and taken off every other site's carousel. China-warehouse items are never linked. |
-| `titleExclude`       | Optional. Never link a product whose title contains one of these words (e.g. no prescription items).                                                                                                                                           |
+| `titleExclude`       | Optional. Never link a product whose title contains one of these whole words (e.g. no prescription items).                                                                                                                                     |
 
 ## Running the shortlist
 

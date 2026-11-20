@@ -118,14 +118,27 @@ export function applyOnlyOnSite(map: SiteMap): SiteMap {
   };
 }
 
-/** True when a product title passes a site's titleMatch / titleExclude rules. */
+/**
+ * True when the title contains the word (or phrase) as a whole word, plurals included:
+ * "safe" matches "Gun Safe" and "2 Safes" but not "Safety Pad"; "pill" no longer matches
+ * "pillow" and "brace" no longer matches "bracelet". Help: docs/CJ-SITE-MAP.md
+ */
+export function hasWord(title: string, word: string): boolean {
+  const w = word.trim().toLowerCase();
+  if (!w) return false;
+  const esc = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // "party" also matches "parties"; other words also match "-s" and "-es" plurals.
+  const body = w.endsWith("y") ? `(?:${esc}s?|${esc.slice(0, -1)}ies)` : `${esc}(?:s|es)?`;
+  return new RegExp(`(?<![a-z0-9])${body}(?![a-z0-9])`).test(title.toLowerCase());
+}
+
+/** True when a product title passes a site's titleMatch / titleExclude rules (whole words). */
 export function titleFitsSite(
   title: string,
   site: Pick<SiteMapEntry, "titleMatch" | "titleExclude">,
 ): boolean {
-  const t = title.toLowerCase();
-  if (site.titleExclude?.some((w) => t.includes(w.toLowerCase()))) return false;
-  if (site.titleMatch?.length) return site.titleMatch.some((w) => t.includes(w.toLowerCase()));
+  if (site.titleExclude?.some((w) => hasWord(title, w))) return false;
+  if (site.titleMatch?.length) return site.titleMatch.some((w) => hasWord(title, w));
   return true;
 }
 
