@@ -195,6 +195,28 @@ describe("website carousel site map", async () => {
     expect(ez.titleExclude).toContain("us plug");
   });
 
+  it("matches whole words only, so 'safe' no longer pulls in 'safety' items", () => {
+    const fire = map.sites.find((s: { slug: string }) => s.slug === "firearmsafety");
+    expect(titleFitsSite("Stainless Steel Stock Pot with Glass Lid, Dishwasher Safe", fire)).toBe(
+      false,
+    );
+    expect(titleFitsSite("Full over Full Bunk Bed with Ladder And Safety Guard", fire)).toBe(false);
+    expect(titleFitsSite("12FT Trampoline Spring Cover Safety Pad", fire)).toBe(false);
+    expect(titleFitsSite("Yellow 4-Wheel Kids Pedal Go Kart", fire)).toBe(false);
+    expect(titleFitsSite("Steel Wall Safes for Home, 2 Pack", fire)).toBe(true);
+    expect(titleFitsSite("Electronic Shooting Earmuffs", fire)).toBe(true);
+
+    const med = map.sites.find((s: { slug: string }) => s.slug === "medicalsupplie");
+    expect(titleFitsSite("Memory Foam Pillow", med)).toBe(false); // "pill" is not "pillow"
+    expect(titleFitsSite("Gold Charm Bracelet", med)).toBe(false); // "brace" is not "bracelet"
+    expect(titleFitsSite("Shower Chair with Back for Seniors", med)).toBe(true);
+
+    const biz = map.sites.find((s: { slug: string }) => s.slug === "businessbuy");
+    expect(titleFitsSite("Round Iron Sign, Doorbell Malfunction Warning Plaque", biz)).toBe(false);
+    expect(titleFitsSite("Thermal Laminator A4 for Office", biz)).toBe(true);
+    expect(titleFitsSite("Bank Bill Counters with Counterfeit Detection", biz)).toBe(true);
+  });
+
   it("lets sites without title rules take anything in their categories", () => {
     expect(titleFitsSite("Anything", {})).toBe(true);
   });
