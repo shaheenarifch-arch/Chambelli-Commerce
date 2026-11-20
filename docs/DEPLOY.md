@@ -30,8 +30,21 @@ curl -fsSL https://raw.githubusercontent.com/shaheenarifch-arch/Chambelli-Commer
 ```
 
 The first run installs Docker if needed, creates `/etc/chambelli/env` with fresh secrets,
-builds the image (a few minutes), starts everything and prints the dashboard password.
-Run the same command again any time to update to the latest `main`.
+downloads the app image, starts everything and prints the dashboard password.
+Run the same command again any time to update to the latest `main` (about a minute).
+
+**Where the image comes from.** The VM has only 1 GB of memory, too little to build the app
+(installing its packages freezes the VM). So GitHub builds it: every merge to `main` runs the
+**image** workflow ([Actions tab](https://github.com/shaheenarifch-arch/Chambelli-Commerce/actions/workflows/image.yml)),
+which publishes `ghcr.io/shaheenarifch-arch/chambelli-commerce:latest`. Wait for that run to
+finish (green tick, about 5 minutes) before running the update command. Free for public repos.
+
+- **One time:** after the first run, make the package public so the VM can download it without
+  a password: [your packages](https://github.com/shaheenarifch-arch?tab=packages) →
+  **chambelli-commerce** → **Package settings** → **Change visibility** → **Public**.
+  ([GitHub help](https://docs.github.com/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-packages-for-your-personal-account))
+  To keep it private instead, add `GHCR_TOKEN=<token with read:packages>` to `/etc/chambelli/env`.
+- To build on the VM anyway (slow): `curl -fsSL …/vm-install.sh | sudo CHAMBELLI_BUILD_LOCAL=1 bash`.
 
 ## 3. Add keys
 

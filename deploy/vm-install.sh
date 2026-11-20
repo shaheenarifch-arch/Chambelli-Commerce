@@ -75,10 +75,30 @@ fi
 set -a; . "$ENV_FILE"; set +a
 grep -q '^PUBLIC_API_BASE_URL=' "$ENV_FILE" || echo "PUBLIC_API_BASE_URL=https://$DOMAIN" >> "$ENV_FILE"
 
-# 4. Build and start (schema is synced by the api container on start)
-echo "==> Building and starting containers (first build takes a few minutes)"
+# 4. Start (schema is synced by the api container on start)
+#    The image is built on GitHub (.github/workflows/image.yml), because building it here
+#    needs more memory than this 1 GB VM has. Set CHAMBELLI_BUILD_LOCAL=1 to build here instead.
+#    A private image needs GHCR_TOKEN (a GitHub token with read:packages) in $ENV_FILE.
+IMAGE="${CHAMBELLI_IMAGE:-ghcr.io/shaheenarifch-arch/chambelli-commerce:latest}"
 cd "$APP_DIR"
-docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up -d --build
+if [ "${CHAMBELLI_BUILD_LOCAL:-0}" = "1" ]; then
+	echo "==> Building and starting containers on this VM (slow on a small VM)"
+	docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up -d --build
+else
+	echo "==> Downloading the ready-built image $IMAGE"
+	if [ -n "${GHCR_TOKEN:-}" ]; then
+		echo "$GHCR_TOKEN" | docker login ghcr.io -u shaheenarifch-arch --password-stdin >/dev/null
+	fi
+	docker pull "$IMAGE" || {
+		echo "Could not download $IMAGE. Check the 'image' workflow ran on GitHub (Actions tab)," >&2
+		echo "and that the package is public, or add GHCR_TOKEN to $ENV_FILE. See docs/DEPLOY.md." >&2
+		exit 1
+	}
+	docker tag "$IMAGE" chambelli-app:latest
+	echo "==> Starting containers"
+	docker compose --env-file "$ENV_FILE" -f docker-compose.prod.yml up -d --no-build
+	docker image prune -f >/dev/null 2>&1 || true
+fi
 
 # 5. HTTPS via the VM's existing Caddy. Public: API routes and the widget.
 #    Everything else is the admin dashboard, which has its own sign-in page (/login)
