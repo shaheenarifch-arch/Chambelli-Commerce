@@ -12,16 +12,19 @@ const canadaPagePath = new URL("../../public/ca.html", import.meta.url);
 let canadaPage: string | null = null;
 const ukPagePath = new URL("../../public/uk.html", import.meta.url);
 let ukPage: string | null = null;
+const dePagePath = new URL("../../public/de.html", import.meta.url);
+let dePage: string | null = null;
 const productPagePath = new URL("../../public/product.html", import.meta.url);
 let productPage: string | null = null;
 const productScriptPath = new URL("../../public/product.js", import.meta.url);
 let productScript: string | null = null;
 
-/** Storefront markets with a product page: /us/p/{slug}, /ca/p/{slug}, /uk/p/{slug}. */
+/** Storefront markets with a product page: /us/p/{slug}, /ca/p/{slug}, /uk/p/{slug}, /de/p/{slug}. */
 const MARKETS = {
   us: { market: "US", lang: "en-US", store: "Chambelli" },
   ca: { market: "CA", lang: "en-CA", store: "Chambelli Canada" },
   uk: { market: "UK", lang: "en-GB", store: "Chambelli UK" },
+  de: { market: "DE", lang: "en-DE", store: "Chambelli Germany" },
 } as const;
 type MarketKey = keyof typeof MARKETS;
 
@@ -165,6 +168,20 @@ export async function publicRoutes(app: FastifyInstance) {
   });
 
   /**
+   * Chambelli Germany storefront page (docs/DE.md). Point agent.getservices.ai/de at this route;
+   * the carousel inside it loads EUR products from PUBLIC_API_BASE_URL.
+   */
+  app.get("/de", async (req, reply) => {
+    dePage ??= await readFile(dePagePath, "utf8");
+    const base = (config.publicApiBaseUrl || `${req.protocol}://${req.host}`).replace(/\/$/, "");
+    const safeBase = base.replace(/[&<>"']/g, "");
+    return reply
+      .type("text/html; charset=utf-8")
+      .header("Cache-Control", "public, max-age=300")
+      .send(dePage.replaceAll("{{API_BASE}}", safeBase));
+  });
+
+  /**
    * Product data for the storefront product page: photo, sizes/options, prices and the site
    * (website id) the cart belongs to.
    */
@@ -173,7 +190,7 @@ export async function publicRoutes(app: FastifyInstance) {
     const q = z
       .object({
         site: z.string().max(100).optional(),
-        market: z.enum(["US", "CA", "UK"]).optional(),
+        market: z.enum(["US", "CA", "UK", "DE"]).optional(),
       })
       .parse(req.query);
     const found = await findProductForSale(slug, q.site, q.market);

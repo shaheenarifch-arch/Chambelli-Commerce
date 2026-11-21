@@ -10,6 +10,7 @@ import {
   canadaTaxRate,
   normalizePostalCode,
   normalizeUkPostcode,
+  normalizeDePostcode,
   provinceCode,
 } from "@chambelli/pricing";
 import { config } from "./config.js";
@@ -142,6 +143,14 @@ export async function commerceRoutes(app: FastifyInstance) {
       if (!postcode) throw new Error("INVALID_POSTAL_CODE");
       b.address.postalCode = postcode;
     }
+    // Germany chapter (docs/DE.md): ships only within Germany, charged in EUR. Prices already
+    // include delivery and any VAT (German shoppers must see VAT-inclusive prices).
+    if (site.market === "DE") {
+      if (b.address.country !== "DE") throw new Error("SHIPPING_COUNTRY_NOT_SUPPORTED");
+      const postcode = normalizeDePostcode(b.address.postalCode);
+      if (!postcode) throw new Error("INVALID_POSTAL_CODE");
+      b.address.postalCode = postcode;
+    }
 
     const summary = await carts.summary(b.cartId);
     let discount = 0;
@@ -158,7 +167,7 @@ export async function commerceRoutes(app: FastifyInstance) {
       update: {},
     });
     const address = await db.address.create({ data: { ...b.address, customerId: customer.id } });
-    // Shipping stays at zero (Canadian and UK prices include it). Tax is zero except GST/HST on the
+    // Shipping stays at zero (Canadian, UK and German prices include it). Tax is zero except GST/HST on the
     // Canada site once registered; US tax still needs a quote service (see docs/PART2.md).
     const order = await orders.createFromCart({
       cartId: b.cartId,

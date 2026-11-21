@@ -1414,7 +1414,7 @@
       "slug": "buybeststore",
       "name": "BuyBestStore",
       "domain": "buybeststore.com",
-      "market": "UK",
+      "market": "DE",
       "cjCategories": [
         "Home, Garden & Furniture",
         "Consumer Electronics",
@@ -1464,10 +1464,10 @@
       ],
       "titleExclude": [
         "us plug",
-        "eu plug",
+        "uk plug",
         "au plug",
         "us standard",
-        "eu standard",
+        "uk standard",
         "toy",
         "kids",
         "baby",

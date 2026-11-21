@@ -9,8 +9,8 @@
  *   data-product-url="https://tech.example.com/shop/{slug}"></script>
  *
  * data-product-url is optional; {slug} and {id} are replaced per product. Without it, each card
- * opens the Chambelli product page for the site's market (API_HOST/us/p/{slug}?site=..., or /ca
- * and /uk), where the shopper picks a size, adds to cart and checks out.
+ * opens the Chambelli product page for the site's market (API_HOST/us/p/{slug}?site=..., or /ca,
+ * /uk and /de), where the shopper picks a size, adds to cart and checks out.
  */
 (() => {
   const s = document.currentScript;
@@ -35,7 +35,7 @@
       return "";
     }
   };
-  const MARKET_PATHS = { US: "us", CA: "ca", UK: "uk" };
+  const MARKET_PATHS = { US: "us", CA: "ca", UK: "uk", DE: "de" };
   let marketPath = "us";
   const productUrl = (p) =>
     urlTemplate

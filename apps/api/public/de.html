@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chambelli Germany · Ships from Germany</title>
+    <meta
+      name="description"
+      content="Chambelli Germany: everyday finds shipped from warehouses in Germany. Prices in EUR with delivery in Germany included."
+    />
+    <style>
+      :root {
+        --ink: #1f2430;
+        --muted: #5b6272;
+        --accent: #1d4ed8;
+        --bg: #f6f8fc;
+        --card: #ffffff;
+        --line: #dfe5f0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.55;
+      }
+      header {
+        background: var(--card);
+        border-bottom: 1px solid var(--line);
+        padding: 20px 16px;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+      }
+      header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+      }
+      .badge {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 0.85rem;
+        background: var(--bg);
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+      }
+      section.help {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-top: 28px;
+      }
+      section.help h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+      }
+      details {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        padding: 20px 16px 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Chambelli Germany</h1>
+      <p>Everyday finds shipped from warehouses in Germany, priced in euros.</p>
+      <div class="badges" aria-label="Store highlights">
+        <span class="badge">🇩🇪 Ships from Germany</span>
+        <span class="badge">Prices in EUR</span>
+        <span class="badge">Delivery in Germany included</span>
+        <span class="badge">No import charges</span>
+      </div>
+    </header>
+
+    <main>
+      <script
+        async
+        src="{{API_BASE}}/widget.js"
+        data-api="{{API_BASE}}"
+        data-site="chambelli-de"
+        data-placement="storefront"
+        data-title="Ships from Germany"
+      ></script>
+
+      <section class="help" aria-labelledby="help-title">
+        <h2 id="help-title">Help &amp; questions</h2>
+        <details>
+          <summary>Where do orders ship from?</summary>
+          <p>
+            Every item in this store is held in a warehouse in Germany, so your order never goes
+            through customs and you pay no import VAT or handling fees on delivery.
+          </p>
+        </details>
+        <details>
+          <summary>Where do you deliver?</summary>
+          <p>
+            For now we deliver to addresses in Germany only. The price you see is in euros and
+            already includes delivery. You get a tracking number by email once your order ships.
+          </p>
+        </details>
+        <details>
+          <summary>Does the price include VAT?</summary>
+          <p>
+            Yes. Any VAT due is already in the price shown, so nothing is added at checkout. Learn
+            more on
+            <a
+              href="https://europa.eu/youreurope/citizens/consumers/shopping/pricing-payments/index_en.htm"
+              target="_blank"
+              rel="noopener"
+              >Your Europe: prices and payments</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>What do I need at checkout?</summary>
+          <p>
+            A delivery address in Germany with a valid five-digit postcode (Postleitzahl, for
+            example <strong>10115</strong>). You can pay by card or PayPal; we never see or store
+            your card number.
+          </p>
+        </details>
+        <details>
+          <summary>How do I return something?</summary>
+          <p>
+            Under EU consumer law you can withdraw from most online orders within 14 days of
+            delivery. Email us your order number and the reason and we will send return
+            instructions:
+            <a href="mailto:agents@getservices.ai?subject=Chambelli%20Germany%20return"
+              >agents@getservices.ai</a
+            >. Help:
+            <a
+              href="https://europa.eu/youreurope/citizens/consumers/shopping/returns/index_en.htm"
+              target="_blank"
+              rel="noopener"
+              >Your Europe: returns</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>How is my data handled?</summary>
+          <p>
+            We use your details only to deliver your order and answer your questions, as required by
+            the GDPR. Ask us to see or delete your data at
+            <a href="mailto:agents@getservices.ai?subject=Chambelli%20Germany%20data%20request"
+              >agents@getservices.ai</a
+            >. Help:
+            <a
+              href="https://europa.eu/youreurope/citizens/consumers/internet-telecoms/data-protection-online-privacy/index_en.htm"
+              target="_blank"
+              rel="noopener"
+              >Your Europe: data protection</a
+            >.
+          </p>
+        </details>
+      </section>
+    </main>
+
+    <footer>Chambelli Germany · a GetServices.ai store</footer>
+  </body>
+</html>

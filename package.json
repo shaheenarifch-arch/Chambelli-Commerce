@@ -20,6 +20,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:canada": "tsx prisma/canada.ts",
     "db:uk": "tsx prisma/uk.ts",
+    "db:de": "tsx prisma/de.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:push": "prisma db push --skip-generate"
   },

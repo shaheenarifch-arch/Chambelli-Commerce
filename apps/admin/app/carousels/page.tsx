@@ -39,9 +39,9 @@ type Row = {
 
 const usd = (v: string | number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(v));
-/** Shows a price in its own currency (GBP on UK sites). */
+/** Shows a price in its own currency (GBP on UK sites, EUR on Germany sites). */
 const money = (v: string | number, currency: string) =>
-  new Intl.NumberFormat(currency === "GBP" ? "en-GB" : "en-US", {
+  new Intl.NumberFormat(currency === "GBP" ? "en-GB" : currency === "EUR" ? "en-DE" : "en-US", {
     style: "currency",
     currency,
   }).format(Number(v));
@@ -59,11 +59,13 @@ export default async function CarouselsPage({
     : { data: null, error: null };
   const rows = detail.data?.rows ?? [];
   const uk = selected?.market === "UK";
-  // UK products are live only once they have an in-stock GBP price.
+  const de = selected?.market === "DE";
+  // UK/Germany products are live only once they have an in-stock GBP/EUR price.
   const isLive = (r: Row) =>
     r.active &&
     r.product.status === "ACTIVE" &&
-    (!uk || r.product.variants.some((v) => v.currency === "GBP" && v.quantity > 0));
+    ((!uk && !de) ||
+      r.product.variants.some((v) => v.currency === selected?.currency && v.quantity > 0));
   const waiting = rows.filter((r) => r.active && !isLive(r));
   const live = rows.filter(isLive);
   const removed = rows.filter((r) => !r.active);
@@ -145,6 +147,21 @@ export default async function CarouselsPage({
                   </a>
                   .
                 </p>
+              ) : de ? (
+                <p className="help">
+                  🇩🇪 <b>Germany site</b>: <b>Approve</b> prices each product in EUR at your 30%
+                  margin with delivery in Germany (and VAT, if set) built in, checks CJ&apos;s
+                  German warehouse stock, and puts it live. Products with no German stock stay
+                  waiting. Settings:{" "}
+                  <a
+                    href="https://github.com/shaheenarifch-arch/Chambelli-Commerce/blob/main/docs/DE.md"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Germany guide
+                  </a>
+                  .
+                </p>
               ) : (
                 <p className="help">
                   <b>Approve</b> prices each product at your 30% margin with US shipping built in,
@@ -158,7 +175,7 @@ export default async function CarouselsPage({
               </p>
               <form action={approve}>
                 <input type="hidden" name="site" value={selected.slug} />
-                <input type="hidden" name="market" value={uk ? "UK" : "US"} />
+                <input type="hidden" name="market" value={uk ? "UK" : de ? "DE" : "US"} />
                 <button
                   type="submit"
                   className="approve"
@@ -235,7 +252,9 @@ export default async function CarouselsPage({
                                 : cost
                                   ? `CJ cost ${usd(cost)}`
                                   : "No CJ price"}
-                              {!uk && r.product.status === "OUT_OF_STOCK" ? " · no US stock" : ""}
+                              {!uk && !de && r.product.status === "OUT_OF_STOCK"
+                                ? " · no US stock"
+                                : ""}
                             </span>
                           </label>
                         );
