@@ -1,8 +1,8 @@
 /*!
  * Chambelli product page and checkout-return page.
  *
- * Served with product.html at /{us|ca|uk}/p/{slug}?site={site-slug} (every carousel card links
- * here) and /{us|ca|uk}/checkout/return (where PayPal sends the shopper back after paying).
+ * Served with product.html at /{us|ca|uk|de}/p/{slug}?site={site-slug} (every carousel card links
+ * here) and /{us|ca|uk|de}/checkout/return (where PayPal sends the shopper back after paying).
  */
 (() => {
   const cfgEl = document.getElementById("chambelli-config");
@@ -31,6 +31,13 @@
       regionReq: false,
       postal: "Postcode",
       postalEg: "SW1A 1AA",
+    },
+    DE: {
+      country: "DE",
+      region: "State (optional)",
+      regionReq: false,
+      postal: "Postcode (PLZ)",
+      postalEg: "10115",
     },
   }[market] || {
     country: "US",

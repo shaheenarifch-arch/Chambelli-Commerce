@@ -39,6 +39,17 @@ export const config = {
     minMarginPercent: Number(process.env.UK_MIN_MARGIN_PERCENT ?? 30),
     vatPercent: Number(process.env.UK_VAT_PERCENT ?? 0),
   },
+  /** Germany chapter (docs/DE.md): EUR prices for Germany sites, from CJ German-warehouse stock. */
+  de: {
+    usdToEurRate:
+      Number(process.env.USD_TO_EUR_RATE) > 0 ? Number(process.env.USD_TO_EUR_RATE) : null,
+    shippingEur:
+      process.env.DE_SHIPPING_ESTIMATE_EUR && Number(process.env.DE_SHIPPING_ESTIMATE_EUR) >= 0
+        ? Number(process.env.DE_SHIPPING_ESTIMATE_EUR)
+        : null,
+    minMarginPercent: Number(process.env.DE_MIN_MARGIN_PERCENT ?? 30),
+    vatPercent: Number(process.env.DE_VAT_PERCENT ?? 0),
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",

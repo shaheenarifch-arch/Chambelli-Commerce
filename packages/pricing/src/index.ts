@@ -4,6 +4,7 @@ import { computePrice } from "./math.js";
 export { computePrice };
 export * from "./canada.js";
 export * from "./uk.js";
+export * from "./de.js";
 
 export class PricingService {
   async calculate(cost: number, shipping: number, category: string, supplierType: SupplierType) {

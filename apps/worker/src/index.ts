@@ -13,6 +13,7 @@ import {
 } from "@chambelli/cj";
 import { syncCanada } from "./canada.js";
 import { syncUk } from "./uk.js";
+import { syncDe } from "./de.js";
 import { checkAmazonListings } from "./amazon.js";
 
 const PAGE_SIZE = 100;
@@ -60,12 +61,17 @@ async function refreshSiteStock(cj: CJConnector) {
     const stock = await cj.warehouseStock(sp.supplierProductId, "US").catch(() => null);
     if (stock === null || stock === v.quantity) continue;
     await db.productVariant.update({ where: { id: v.id }, data: { quantity: stock } });
-    // Keep the product on UK carousels if it still has UK (GBP) stock.
+    // Keep the product on UK/Germany carousels if it still has UK (GBP) or German (EUR) stock.
     const otherStock =
       stock > 0
         ? 0
         : await db.productVariant.count({
-            where: { productId: v.productId, currency: "GBP", active: true, quantity: { gt: 0 } },
+            where: {
+              productId: v.productId,
+              currency: { in: ["GBP", "EUR"] },
+              active: true,
+              quantity: { gt: 0 },
+            },
           });
     await db.product.update({
       where: { id: v.productId },
@@ -95,6 +101,24 @@ async function refreshSiteStock(cj: CJConnector) {
   }
   if (ukVariants.length)
     console.log(`UK carousel stock: ${ukVariants.length} checked, ${ukChanged} changed`);
+
+  // Germany sites (docs/DE.md): EUR variants follow CJ German-warehouse stock, same as the UK.
+  const deVariants = await db.productVariant.findMany({
+    where: { sku: { endsWith: "-DE" }, warehouse: "DE", currency: "EUR" },
+    include: { product: { include: { supplierProducts: { where: { country: "DE" }, take: 1 } } } },
+  });
+  let deChanged = 0;
+  for (const v of deVariants) {
+    const sp = v.product.supplierProducts[0];
+    if (!sp || v.product.status === ProductStatus.DRAFT) continue;
+    await new Promise((r) => setTimeout(r, 1100));
+    const stock = await cj.warehouseStock(sp.supplierProductId, "DE").catch(() => null);
+    if (stock === null || stock === v.quantity) continue;
+    await db.productVariant.update({ where: { id: v.id }, data: { quantity: stock } });
+    deChanged++;
+  }
+  if (deVariants.length)
+    console.log(`Germany carousel stock: ${deVariants.length} checked, ${deChanged} changed`);
 }
 
 /**
@@ -141,10 +165,12 @@ async function routeOnlyOnSite(map: SiteMap) {
 
 async function linkSites(map: SiteMap) {
   for (const s of map.sites) {
-    // UK sites sell CJ UK-warehouse stock in GBP (UK chapter, docs/UK.md); the rest US/USD.
-    const uk = s.market === "UK";
-    const market = uk ? "UK" : "US";
-    const currency = uk ? "GBP" : "USD";
+    // UK sites sell CJ UK-warehouse stock in GBP (UK chapter, docs/UK.md), Germany sites CJ
+    // German-warehouse stock in EUR (docs/DE.md); the rest US/USD.
+    const market = s.market === "UK" || s.market === "DE" ? s.market : "US";
+    const uk = market !== "US"; // a European warehouse market (UK or Germany)
+    const marketTag = market === "DE" ? "de" : "uk";
+    const currency = market === "UK" ? "GBP" : market === "DE" ? "EUR" : "USD";
     const site = await db.website.upsert({
       where: { slug: s.slug },
       update: { market, currency },
@@ -173,6 +199,19 @@ async function linkSites(map: SiteMap) {
       });
       if (pruned.count)
         console.log(`${s.domain}: dropped ${pruned.count} products with no US stock`);
+    } else if (market === "DE") {
+      // Germany sites: drop links to products that are not from the German-warehouse sync
+      // (e.g. UK products left over after buybeststore.com moved from UK to Germany). They can
+      // never show here, because the carousel only shows prices in the site's own currency (EUR).
+      const pruned = await db.productAssignment.deleteMany({
+        where: {
+          websiteId: site.id,
+          placement: SITE_PLACEMENT,
+          NOT: { product: { tags: { has: marketTag } } },
+        },
+      });
+      if (pruned.count)
+        console.log(`${s.domain}: dropped ${pruned.count} products not stocked in ${market}`);
     }
     const have = await db.productAssignment.count({
       where: { websiteId: site.id, placement: SITE_PLACEMENT },
@@ -213,9 +252,9 @@ async function linkSites(map: SiteMap) {
     const candidates = await db.product.findMany({
       where: {
         supplierType: SupplierType.CJ,
-        // UK products come from the UK sync (tag "uk"), which does not set a CJ category.
+        // UK/Germany products come from their own sync (tag "uk"/"de"), which sets no CJ category.
         ...(uk
-          ? { tags: { has: "uk" }, category: { in: [...s.cjCategories, "uncategorized"] } }
+          ? { tags: { has: marketTag }, category: { in: [...s.cjCategories, "uncategorized"] } }
           : { category: { in: s.cjCategories }, tags: { has: US_TAG } }),
         assignments: { none: { websiteId: site.id, placement: SITE_PLACEMENT } },
       },
@@ -261,7 +300,7 @@ async function syncSiteTerms(
   errors: Array<{ pid: string; message: string }>,
 ) {
   for (const s of map.sites) {
-    if (s.market === "UK" || !s.terms?.length) continue;
+    if (s.market === "UK" || s.market === "DE" || !s.terms?.length) continue;
     const site = await db.website.findUnique({ where: { slug: s.slug } });
     const have = site
       ? await db.productAssignment.count({
@@ -505,6 +544,8 @@ export async function sync() {
     if (process.env.CJ_SYNC_CANADA === "true") await syncCanada(cj);
     // UK chapter: GB-warehouse stock priced in GBP, only when CJ_SYNC_UK=true. Help: docs/UK.md
     if (process.env.CJ_SYNC_UK === "true") await syncUk(cj);
+    // Germany chapter: DE-warehouse stock priced in EUR, only when CJ_SYNC_DE=true. Help: docs/DE.md
+    if (process.env.CJ_SYNC_DE === "true") await syncDe(cj);
   } catch (e) {
     await db.syncJob.update({
       where: { id: job.id },
