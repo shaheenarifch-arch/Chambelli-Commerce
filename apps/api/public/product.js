@@ -63,6 +63,10 @@
       "Please use the same email as your first try, or add the item to your cart again.",
     PAYMENT_NOT_COMPLETED: "The payment wasn't completed. You have not been charged.",
   };
+  const US_STATES = "AL Alabama|AK Alaska|AZ Arizona|AR Arkansas|CA California|CO Colorado|CT Connecticut|DE Delaware|DC District of Columbia|FL Florida|GA Georgia|HI Hawaii|ID Idaho|IL Illinois|IN Indiana|IA Iowa|KS Kansas|KY Kentucky|LA Louisiana|ME Maine|MD Maryland|MA Massachusetts|MI Michigan|MN Minnesota|MS Mississippi|MO Missouri|MT Montana|NE Nebraska|NV Nevada|NH New Hampshire|NJ New Jersey|NM New Mexico|NY New York|NC North Carolina|ND North Dakota|OH Ohio|OK Oklahoma|OR Oregon|PA Pennsylvania|RI Rhode Island|SC South Carolina|SD South Dakota|TN Tennessee|TX Texas|UT Utah|VT Vermont|VA Virginia|WA Washington|WV West Virginia|WI Wisconsin|WY Wyoming"
+    .split("|")
+    .map((s) => [s.slice(0, 2), s.slice(3)]);
+  const POSTAL_PATTERN = { US: "\\d{5}(-\\d{4})?" }[market] || "";
   const errText = (code) =>
     ERRORS[code] || "Something went wrong. Please try again, or email agents@getservices.ai.";
 
@@ -120,6 +124,7 @@
   };
   const cartKey = (siteId) => `chambelli-cart:${siteId}`;
   const LAST = `chambelli-last:${market}`;
+  const ADDR = `chambelli-address:${market}`;
 
   async function call(path, opts = {}) {
     const r = await fetch(`${api}${path}`, {
@@ -235,36 +240,58 @@
           <input id="qty" class="qty" type="number" min="1" max="20" value="1" inputmode="numeric">
           <p class="hint">Up to 20 per item.</p>
           <div class="row">
-            <button id="add" type="button"${buyable.length ? "" : " disabled"}>${buyable.length ? "Add to cart" : "Sold out"}</button>
+            ${
+              buyable.length && checkoutOpen
+                ? `<button id="buy" type="button" class="buy">Buy now</button>`
+                : ""
+            }
+            <button id="add" type="button"${buyable.length && checkoutOpen ? ' class="secondary"' : ""}${buyable.length ? "" : " disabled"}>${buyable.length ? "Add to cart" : "Sold out"}</button>
             <button id="go" type="button" class="secondary" hidden>Checkout</button>
           </div>
           <p id="add-msg" class="msg" aria-live="polite"></p>
+          ${
+            checkoutOpen
+              ? `<ul class="perks"><li>Delivery included, no fees added at checkout</li><li>Pay with PayPal or any debit/credit card, no account needed</li><li>Tracking number by email once it ships</li></ul>`
+              : `<p class="closed-note"><strong>Online payment isn't open yet</strong>, so you can't be charged. To order this item now, email <a href="mailto:agents@getservices.ai?subject=Order%3A%20${encodeURIComponent(product.title)}">agents@getservices.ai</a> and we will reply with a payment link.</p>`
+          }
           ${product.description ? `<div class="desc">${esc(product.description)}</div>` : ""}
         </div>
       </article>
 
       <section id="checkout" class="panel" hidden aria-labelledby="co-title">
         <h2 id="co-title">Checkout</h2>
-        <p class="hint">Enter where we should deliver, then you'll pay securely on PayPal (account or guest card). Fields marked * are required.</p>
+        <ol class="steps" aria-label="Checkout steps"><li class="on">Delivery details</li><li>Pay on PayPal</li><li>Done</li></ol>
+        <div id="summary" class="summary" aria-live="polite"></div>
         <form id="co-form" novalidate>
+          <p class="hint">Where should we deliver? Fields marked * are required. <a href="#help-title">Help with checkout</a></p>
           <div class="grid2">
-            <div><label for="email">Email *</label><input id="email" type="email" autocomplete="email" required maxlength="254">
+            <div><label for="email">Email *</label><input id="email" type="email" autocomplete="email" required maxlength="254" inputmode="email">
               <p class="hint">For your receipt and tracking number.</p></div>
             <div><label for="name">Full name *</label><input id="name" autocomplete="name" required maxlength="200"></div>
-            <div><label for="line1">Address line 1 *</label><input id="line1" autocomplete="address-line1" required maxlength="200"></div>
-            <div><label for="line2">Address line 2</label><input id="line2" autocomplete="address-line2" maxlength="200">
-              <p class="hint">Apartment, suite or unit (optional).</p></div>
+            <div class="span2"><label for="line1">Street address *</label><input id="line1" autocomplete="address-line1" required maxlength="200" placeholder="House number and street">
+              <button type="button" id="more-addr" class="linkbtn">+ Add apartment, suite or unit</button>
+              <input id="line2" autocomplete="address-line2" maxlength="200" placeholder="Apartment, suite or unit" aria-label="Apartment, suite or unit" hidden></div>
             <div><label for="city">City *</label><input id="city" autocomplete="address-level2" required maxlength="100"></div>
-            <div><label for="region">${esc(M.region)}${M.regionReq ? " *" : ""}</label><input id="region" autocomplete="address-level1" maxlength="100"${M.regionReq ? " required" : ""}></div>
-            <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="e.g. ${esc(M.postalEg)}"></div>
-            <div><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" maxlength="40">
-              <p class="hint">Optional, only used by the courier if there's a delivery problem.</p></div>
+            <div class="grid2 tight">
+              <div><label for="region">${esc(M.region)}${M.regionReq ? " *" : ""}</label>${
+                market === "US"
+                  ? `<select id="region" autocomplete="address-level1" required><option value="">Choose</option>${US_STATES.map(([c, n]) => `<option value="${c}">${esc(n)}</option>`).join("")}</select>`
+                  : `<input id="region" autocomplete="address-level1" maxlength="100"${M.regionReq ? " required" : ""}>`
+              }</div>
+              <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="e.g. ${esc(M.postalEg)}"${POSTAL_PATTERN ? ` pattern="${POSTAL_PATTERN}" inputmode="numeric"` : ""}></div>
+            </div>
+            <div class="span2"><label for="phone">Phone (optional)</label><input id="phone" type="tel" autocomplete="tel" maxlength="40">
+              <p class="hint">Only used by the courier if there's a delivery problem.</p></div>
           </div>
-          <div class="row">
-            <button id="pay" type="submit"${checkoutOpen ? "" : " disabled"}>${
-              modes?.paypal === "sandbox" ? "Pay with PayPal (test mode)" : "Pay with PayPal"
+          <label class="check"><input id="remember" type="checkbox" checked> Remember my details on this device for next time</label>
+          <div class="paybar">
+            <div class="paytotal"><span>Total</span><strong id="pay-total"></strong></div>
+            <button id="pay" type="submit" class="paypal"${checkoutOpen ? "" : " disabled"}>${
+              modes?.paypal === "sandbox" ? "Continue to PayPal (test mode)" : "Continue to PayPal"
             }</button>
           </div>
+          <p class="secure">&#128274; You'll pay on PayPal's secure page with your PayPal account or as a guest with a debit or credit card. We never see your card number. Nothing is charged until you confirm on PayPal. <a href="https://www.paypal.com/us/cshelp/article/how-do-i-pay-with-a-debit-or-credit-card-without-a-paypal-account-help108" target="_blank" rel="noopener">How guest card payment works</a></p>
+          ${checkoutOpen ? "" : `<p class="closed-note">Online payment isn't open yet, so this button is switched off. Email <a href="mailto:agents@getservices.ai">agents@getservices.ai</a> to order.</p>`}
           <p id="co-msg" class="msg" aria-live="polite"></p>
         </form>
       </section>`;
@@ -293,6 +320,20 @@
         : "";
       $("go").hidden = !n;
       if (!n) $("checkout").hidden = true;
+      if (n) {
+        const total = money(summary.subtotal, site.currency);
+        const img = product.imageUrl ? `<img src="${esc(safeImg(product.imageUrl))}" alt="">` : "";
+        $("summary").innerHTML =
+          `<div class="sum-item">${img}<div><strong>${esc(product.title)}</strong><br><span class="hint">${n} item${n > 1 ? "s" : ""} in your cart</span></div></div>` +
+          `<dl><dt>Items</dt><dd>${esc(total)}</dd><dt>Delivery</dt><dd>Included</dd><dt class="tot">Total</dt><dd class="tot">${esc(total)}</dd></dl>` +
+          `<p class="hint"><a href="#" id="change">Change option or quantity</a></p>`;
+        $("pay-total").textContent = total;
+        $("change").addEventListener("click", (e) => {
+          e.preventDefault();
+          $("qty").focus();
+          $("qty").scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
     };
     if (state.cartId)
       call(`/v1/cart/${encodeURIComponent(state.cartId)}`)
@@ -351,20 +392,61 @@
       btn.disabled = false;
     });
 
-    $("go").addEventListener("click", () => {
+    const openCheckout = () => {
       $("checkout").hidden = false;
       $("checkout").scrollIntoView({ behavior: "smooth", block: "start" });
-      $("email").focus();
+      const first = ["email", "name", "line1", "city", "region", "postal"].find((id) => !$(id).value);
+      $(first || "pay").focus({ preventScroll: true });
+    };
+    $("go").addEventListener("click", openCheckout);
+
+    $("buy")?.addEventListener("click", async () => {
+      const btn = $("buy");
+      const msg = $("add-msg");
+      btn.disabled = true;
+      msg.className = "msg";
+      msg.textContent = "One moment…";
+      try {
+        showCart(await addToCart(false));
+        msg.textContent = "";
+        openCheckout();
+      } catch (e) {
+        msg.className = "msg bad";
+        msg.textContent = errText(e.code);
+      }
+      btn.disabled = false;
     });
+
+    $("more-addr").addEventListener("click", () => {
+      $("more-addr").hidden = true;
+      $("line2").hidden = false;
+      $("line2").focus();
+    });
+    $("postal").addEventListener("input", () => $("postal").setCustomValidity(""));
+    const FIELDS = ["email", "name", "line1", "line2", "city", "region", "postal", "phone"];
+    const saved = store.get(ADDR);
+    if (saved) {
+      FIELDS.forEach((id) => saved[id] && ($(id).value = saved[id]));
+      if (saved.line2) {
+        $("more-addr").hidden = true;
+        $("line2").hidden = false;
+      }
+    }
 
     $("co-form").addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const msg = $("co-msg");
       const form = $("co-form");
+      $("postal").setCustomValidity(
+        $("postal").validity.patternMismatch ? `Please enter a valid ${M.postal.toLowerCase()}, e.g. ${M.postalEg}.` : "",
+      );
       if (!form.checkValidity()) {
         form.reportValidity();
         return;
       }
+      if ($("remember").checked)
+        store.set(ADDR, Object.fromEntries(FIELDS.map((id) => [id, $(id).value.trim()])));
+      else store.del(ADDR);
       if (!state.cartId) {
         msg.className = "msg bad";
         msg.textContent = "Your cart is empty. Add the item first.";
