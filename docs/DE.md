@@ -4,8 +4,15 @@ Sells CJ products held in **German (DE) warehouses** to shoppers in Germany, pri
 delivery in Germany built in. Checkout runs in Chambelli itself. Built the same way as the
 [UK chapter](UK.md).
 
-First (and for now only) Germany site: [buybeststore.com](https://buybeststore.com), moved here from
-the UK chapter.
+Germany sites (both moved here from the UK chapter):
+
+| Site                                         | Slug           | Sells                                                     |
+| -------------------------------------------- | -------------- | --------------------------------------------------------- |
+| [buybeststore.com](https://buybeststore.com) | `buybeststore` | Best buys across home, kitchen, beauty, tech, garden      |
+| [jewllery.store](https://jewllery.store)     | `jewllery`     | Jewellery: necklaces, earrings, bracelets, rings, watches |
+
+Each site has the Chambelli carousel at the top of its homepage; it hides itself until you approve
+products.
 
 ## 1. Turn on the Germany sync
 
@@ -32,8 +39,8 @@ CJ allows one request per second, so the Germany pass is slow on purpose (about 
 In `config/cj-site-map.json`, give a site `"market": "DE"`. The next sync then:
 
 - sets the site to **market DE, currency EUR**, so its carousel shows **€** prices;
-- drops any links to products that are not from the Germany sync (for buybeststore.com this clears
-  the UK products it had before);
+- drops any links to products that are not from the Germany sync (this clears the UK products
+  buybeststore.com and jewllery.store had before);
 - links it only products from the Germany sync (tag `de`), filtered by its `titleMatch` words
   (Germany sites need `titleMatch`, because these products have no CJ category);
 - keeps each EUR price in step with CJ's German warehouse stock every 6 hours.
@@ -69,7 +76,8 @@ its storefront carousel), then open `/de` on the API. On the VM, add `/de` to th
   [German Federal Central Tax Office (BZSt)](https://www.bzst.de/EN/Home/home_node.html). When
   registered, set `DE_VAT_PERCENT=19`.
 - **Impressum (legal notice):** German law requires sites aimed at Germany to show the provider's
-  name, **postal address**, email and phone. buybeststore.com needs an Impressum page with these.
+  name, **postal address**, email and phone. buybeststore.com and jewllery.store each need an
+  Impressum page with these.
   Help: [Your Europe: information you must give customers](https://europa.eu/youreurope/business/dealing-with-customers/consumer-contracts-guarantees/consumer-contracts/index_en.htm).
 - **Packaging register (LUCID):** sellers shipping packaged goods to German consumers generally must
   register with the [Central Agency Packaging Register](https://lucid.verpackungsregister.org/).

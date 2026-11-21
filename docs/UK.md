@@ -57,11 +57,10 @@ Card payments need `STRIPE_SECRET_KEY` (and the webhook) set on the server; PayP
 
 | Site                                         | Slug              | Sells                                                                         |
 | -------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| [jewllery.store](https://jewllery.store)     | `jewllery`        | Jewellery: necklaces, earrings, bracelets, rings, watches                     |
 | [buybeststores.uk](https://buybeststores.uk) | `buybeststoresuk` | Electronics and fitness: earbuds, speakers, chargers, smart watches, home gym |
 | [ezpass.uk](https://ezpass.uk)               | `ezpassuk`        | UK travel gear: luggage, packing cubes, adapters, power banks                 |
 
-buybeststore.com moved to the [Germany chapter](DE.md) (EUR, German warehouse).
+buybeststore.com and jewllery.store moved to the [Germany chapter](DE.md) (EUR, German warehouse).
 
 Products with US, EU or AU plugs are kept off the UK sites. Each site has the carousel at the top of
 its homepage; it hides itself until you approve products.
