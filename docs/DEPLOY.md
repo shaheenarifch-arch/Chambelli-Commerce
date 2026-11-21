@@ -58,6 +58,20 @@ sudo nano /etc/chambelli/env
   Until automatic refresh is added, a new token is needed when the old one expires.
 - `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`: sandbox app keys from
   [PayPal Developer → Apps & Credentials](https://developer.paypal.com/dashboard/applications/sandbox).
+  For real payments use the **Live** tab's app keys and set `PAYPAL_BASE_URL=https://api-m.paypal.com`.
+  Add a webhook in the app pointing to `https://chambelli.getservices.ai/v1/webhooks/paypal`
+  (events `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED`, `PAYMENT.CAPTURE.DECLINED`) and put its ID in `PAYPAL_WEBHOOK_ID`.
+- Card payments (Stripe), shown next to PayPal at checkout:
+  - `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` from
+    [Stripe Dashboard → Developers → API keys](https://dashboard.stripe.com/apikeys)
+    (`sk_test_…`/`pk_test_…` for test mode, `sk_live_…`/`pk_live_…` for real payments).
+  - `STRIPE_WEBHOOK_SECRET`: add an endpoint at
+    [Stripe → Webhooks](https://dashboard.stripe.com/webhooks) for
+    `https://chambelli.getservices.ai/v1/webhooks/stripe` with events `payment_intent.succeeded`,
+    `payment_intent.payment_failed` and `payment_intent.canceled`, then copy its signing secret (`whsec_…`).
+- After editing `/etc/chambelli/env`, restart the API:
+  `sudo docker compose --env-file /etc/chambelli/env -f docker-compose.prod.yml up -d api`.
+  The product page says "Test mode" while keys are test keys and hides that notice once a live key is set.
 
 ## Useful commands
 

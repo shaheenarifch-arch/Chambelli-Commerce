@@ -66,11 +66,13 @@ function securityHeaders(base: string) {
   const self = origin ? `'self' ${origin}` : "'self'";
   return [
     "default-src 'self'",
-    `script-src ${self}`,
+    // Stripe.js powers the card form (https://docs.stripe.com/security/guide#content-security-policy).
+    `script-src ${self} https://js.stripe.com`,
     "style-src 'self' 'unsafe-inline'",
     // Product photos come from CJ's image hosts.
     "img-src 'self' https: data:",
-    `connect-src ${self}`,
+    `connect-src ${self} https://api.stripe.com`,
+    "frame-src https://js.stripe.com https://hooks.stripe.com",
     "frame-ancestors 'self'",
     "base-uri 'self'",
     "form-action 'self'",

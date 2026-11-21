@@ -107,6 +107,10 @@ describe("US product page", () => {
     const csp = String(res.headers["content-security-policy"]);
     expect(csp).toContain("img-src 'self' https: data:");
     expect(csp).toContain("script-src 'self' https://api.example.com");
+    // Stripe's card form loads its script and frames from Stripe.
+    expect(csp).toContain("https://js.stripe.com");
+    expect(csp).toContain("frame-src https://js.stripe.com https://hooks.stripe.com");
+    expect(csp).toContain("connect-src 'self' https://api.example.com https://api.stripe.com");
   });
 
   it("404s for an unknown product", async () => {
@@ -125,6 +129,16 @@ describe("payment mode check", () => {
   it("reports PayPal sandbox and Stripe off", async () => {
     const res = await app.inject("/v1/payments/status");
     expect(res.json()).toEqual({ paypal: "sandbox", stripe: "off" });
+  });
+});
+
+describe("product page extras", () => {
+  it("offers related items, last-minute add-ons and both payment options", () => {
+    const src = readFileSync(new URL("../apps/api/public/product.js", import.meta.url), "utf8");
+    expect(src).toContain('id="related"');
+    expect(src).toContain('id="addons"');
+    expect(src).toContain('value="STRIPE"');
+    expect(src).toContain('value="PAYPAL"');
   });
 });
 
