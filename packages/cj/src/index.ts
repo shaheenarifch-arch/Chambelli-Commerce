@@ -88,6 +88,11 @@ export interface SiteMapEntry {
    * get products from their own warehouse sync and need titleMatch words.
    */
   market?: "US" | "UK" | "DE";
+  /**
+   * Germany sites only: countries the site delivers to from the German warehouse, e.g.
+   * ["FR", "PL"]. Leave out to deliver to Germany only. Help: docs/DE.md
+   */
+  shipTo?: string[];
   /** When set, a product title must contain one of these words (e.g. "safe" for firearmsafety.us). */
   titleMatch?: string[];
   /** Never link a product whose title contains one of these words. */

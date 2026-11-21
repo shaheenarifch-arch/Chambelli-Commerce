@@ -23,6 +23,37 @@ export function dePrice(
   return ukPrice(costUsd, shippingEur, usdToEur, minMarginPercent, vatPercent);
 }
 
+/**
+ * Countries a Germany-chapter site delivers to: its own list, or Germany when the list is empty.
+ * Only countries with a postcode rule below can be used.
+ */
+export function deShipTo(shipTo: string[] | null | undefined): string[] {
+  const list = (shipTo ?? []).map((c) => c.toUpperCase()).filter((c) => c in EU_POSTCODES);
+  return list.length ? list : ["DE"];
+}
+
+/** Postcode rules for the EU countries Germany-chapter sites deliver to. */
+const EU_POSTCODES: Record<string, (v: string) => string | null> = {
+  DE: (v) => normalizeDePostcode(v),
+  // France: five digits, e.g. 75001.
+  FR: (v) => {
+    const c = v.replace(/\s+/g, "").replace(/^F-?/i, "");
+    return /^\d{5}$/.test(c) && c !== "00000" ? c : null;
+  },
+  // Poland: two digits, dash, three digits, e.g. 00-950 (also accepted without the dash).
+  PL: (v) => {
+    const c = v.replace(/\s+/g, "").replace(/^PL-?/i, "");
+    const m = /^(\d{2})-?(\d{3})$/.exec(c);
+    return m ? `${m[1]}-${m[2]}` : null;
+  },
+};
+
+/** Postcode for a delivery country, in that country's usual format; null when invalid. */
+export function normalizeEuPostcode(country: string, value: string): string | null {
+  const rule = EU_POSTCODES[country.toUpperCase()];
+  return rule ? rule(value) : null;
+}
+
 /** German postcode (Postleitzahl): exactly five digits, e.g. "10115". Returns null otherwise. */
 export function normalizeDePostcode(value: string): string | null {
   const v = value.replace(/\s+/g, "").replace(/^D-?/i, "");

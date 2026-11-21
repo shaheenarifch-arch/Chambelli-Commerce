@@ -10,7 +10,8 @@ import {
   canadaTaxRate,
   normalizePostalCode,
   normalizeUkPostcode,
-  normalizeDePostcode,
+  normalizeEuPostcode,
+  deShipTo,
   provinceCode,
 } from "@chambelli/pricing";
 import { config } from "./config.js";
@@ -143,11 +144,12 @@ export async function commerceRoutes(app: FastifyInstance) {
       if (!postcode) throw new Error("INVALID_POSTAL_CODE");
       b.address.postalCode = postcode;
     }
-    // Germany chapter (docs/DE.md): ships only within Germany, charged in EUR. Prices already
-    // include delivery and any VAT (German shoppers must see VAT-inclusive prices).
+    // Germany chapter (docs/DE.md): ships from the German warehouse to the site's countries
+    // (shipTo, Germany when empty), charged in EUR. Prices already include delivery and any VAT.
     if (site.market === "DE") {
-      if (b.address.country !== "DE") throw new Error("SHIPPING_COUNTRY_NOT_SUPPORTED");
-      const postcode = normalizeDePostcode(b.address.postalCode);
+      if (!deShipTo(site.shipTo).includes(b.address.country))
+        throw new Error("SHIPPING_COUNTRY_NOT_SUPPORTED");
+      const postcode = normalizeEuPostcode(b.address.country, b.address.postalCode);
       if (!postcode) throw new Error("INVALID_POSTAL_CODE");
       b.address.postalCode = postcode;
     }

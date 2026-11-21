@@ -5,6 +5,7 @@ import { db, EventType } from "@chambelli/database";
 import { FeedService } from "@chambelli/feeds";
 import { AnalyticsService } from "@chambelli/analytics";
 import { config } from "../config.js";
+import { deShipTo } from "@chambelli/pricing";
 
 const widgetPath = new URL("../../public/widget.js", import.meta.url);
 let widgetSource: string | null = null;
@@ -205,6 +206,8 @@ export async function publicRoutes(app: FastifyInstance) {
         domain: site.domain,
         market: site.market,
         currency: site.currency,
+        // Countries this site delivers to (checkout country list); Germany sites only.
+        shipTo: site.market === "DE" ? deShipTo(site.shipTo) : undefined,
       },
       product: {
         id: product.id,

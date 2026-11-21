@@ -203,6 +203,8 @@ describe("website carousel site map", async () => {
     const bbs = de.find((s: { slug: string }) => s.slug === "buybeststore");
     expect(bbs.titleExclude).toEqual(expect.arrayContaining(["us plug", "uk plug"]));
     expect(bbs.titleExclude).not.toContain("eu plug");
+    const jew = de.find((s: { slug: string }) => s.slug === "jewllery");
+    expect(jew.shipTo).toEqual(["FR", "PL"]);
   });
 
   it("matches whole words only, so 'safe' no longer pulls in 'safety' items", () => {

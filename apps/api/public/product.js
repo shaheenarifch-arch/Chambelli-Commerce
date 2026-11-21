@@ -34,9 +34,9 @@
     },
     DE: {
       country: "DE",
-      region: "State (optional)",
+      region: "Region (optional)",
       regionReq: false,
-      postal: "Postcode (PLZ)",
+      postal: "Postcode",
       postalEg: "10115",
     },
   }[market] || {
@@ -209,6 +209,23 @@
     if (!state.sessionId) state = { sessionId: uuid() };
     const save = () => store.set(cartKey(site.id), state);
 
+    // Germany-chapter sites can deliver to several EU countries (site.shipTo).
+    const COUNTRY_NAMES = { DE: "Germany", FR: "France", PL: "Poland" };
+    const POSTAL_EG = { DE: "10115", FR: "75001", PL: "00-950" };
+    const shipTo = Array.isArray(site.shipTo) && site.shipTo.length ? site.shipTo : [M.country];
+    const countryField =
+      shipTo.length > 1
+        ? `<div><label for="country">Country *</label><select id="country" autocomplete="country" required>${shipTo
+            .map((c) => `<option value="${esc(c)}">${esc(COUNTRY_NAMES[c] || c)}</option>`)
+            .join("")}</select>
+              <p class="hint">We deliver to ${esc(shipTo.map((c) => COUNTRY_NAMES[c] || c).join(" and "))} only.</p></div>`
+        : `<div><label>Country</label><p class="hint">Delivery to ${esc(COUNTRY_NAMES[shipTo[0]] || shipTo[0])} only.</p></div>`;
+    const postalEg =
+      shipTo
+        .map((c) => POSTAL_EG[c])
+        .filter(Boolean)
+        .join(" or ") || M.postalEg;
+
     const optionLabel = variants.length > 1 ? "Size / option" : "Option";
     const options = variants
       .map(
@@ -256,7 +273,8 @@
               <p class="hint">Apartment, suite or unit (optional).</p></div>
             <div><label for="city">City *</label><input id="city" autocomplete="address-level2" required maxlength="100"></div>
             <div><label for="region">${esc(M.region)}${M.regionReq ? " *" : ""}</label><input id="region" autocomplete="address-level1" maxlength="100"${M.regionReq ? " required" : ""}></div>
-            <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="e.g. ${esc(M.postalEg)}"></div>
+            <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="e.g. ${esc(postalEg)}"></div>
+            ${site.market === "DE" ? countryField : ""}
             <div><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" maxlength="40">
               <p class="hint">Optional, only used by the courier if there's a delivery problem.</p></div>
           </div>
@@ -392,7 +410,7 @@
               city: val("city"),
               region: val("region"),
               postalCode: val("postal"),
-              country: M.country,
+              country: $("country") ? $("country").value : shipTo[0],
               phone: val("phone"),
             },
             paymentProvider: "PAYPAL",

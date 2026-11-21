@@ -40,6 +40,9 @@ model Website {
   category    String
   market      String
   currency    String              @default("USD")
+  /// Countries a Germany-chapter site delivers to (e.g. ["FR","PL"]); empty = the market's own
+  /// country. Set from config/cj-site-map.json "shipTo". Help: docs/DE.md
+  shipTo      String[]            @default([])
   active      Boolean             @default(true)
   assignments ProductAssignment[]
   placements  CarouselPlacement[]

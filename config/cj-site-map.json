@@ -1311,6 +1311,7 @@
       "name": "Maison Aurelia (jewllery.store)",
       "domain": "jewllery.store",
       "market": "DE",
+      "shipTo": ["FR", "PL"],
       "cjCategories": ["Jewelry & Watches"],
       "terms": ["necklace", "earrings", "bracelet", "ring", "pendant"],
       "titleMatch": [

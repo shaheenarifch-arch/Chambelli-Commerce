@@ -6,10 +6,10 @@ delivery in Germany built in. Checkout runs in Chambelli itself. Built the same 
 
 Germany sites (both moved here from the UK chapter):
 
-| Site                                         | Slug           | Sells                                                     |
-| -------------------------------------------- | -------------- | --------------------------------------------------------- |
-| [buybeststore.com](https://buybeststore.com) | `buybeststore` | Best buys across home, kitchen, beauty, tech, garden      |
-| [jewllery.store](https://jewllery.store)     | `jewllery`     | Jewellery: necklaces, earrings, bracelets, rings, watches |
+| Site                                         | Slug           | Sells                                                                               |
+| -------------------------------------------- | -------------- | ----------------------------------------------------------------------------------- |
+| [buybeststore.com](https://buybeststore.com) | `buybeststore` | Best buys across home, kitchen, beauty, tech, garden                                |
+| [jewllery.store](https://jewllery.store)     | `jewllery`     | Jewellery for **France and Poland**: necklaces, earrings, bracelets, rings, watches |
 
 Each site has the Chambelli carousel at the top of its homepage; it hides itself until you approve
 products.
@@ -52,13 +52,22 @@ Products with US, UK or AU plugs are kept off buybeststore.com (`titleExclude`);
 stock stay waiting. If you see "set USD_TO_EUR_RATE and DE_SHIPPING_ESTIMATE_EUR", add those to the
 server env first. Approve **one site at a time**.
 
+### Delivery countries (`shipTo`)
+
+A Germany site delivers to **Germany** unless its site-map entry lists other countries in
+`"shipTo"`. jewllery.store has `"shipTo": ["FR", "PL"]`, so it delivers to France and Poland
+(not Germany). Countries you can use: `DE`, `FR`, `PL`. Stock still comes from CJ's German
+warehouse and prices stay in EUR. Checking that CJ delivers from Germany to a country is up to you:
+see [CJ shipping calculator](https://cjdropshipping.com/freight-calculation.html).
+
 ## 3. Checkout in EUR
 
 Germany sites check out through Chambelli's own API (`/v1/cart/items`, `/v1/checkout`), charged in
 **EUR** with Stripe or PayPal (both support EUR):
 
-- delivery addresses in Germany only (country `DE`);
-- the postcode must be five digits (Postleitzahl, e.g. `10115`; `D-10115` is accepted);
+- delivery addresses only in the site's countries (Germany by default; France and Poland for
+  jewllery.store). The checkout shows a country list when there is more than one;
+- the postcode must fit the country: Germany `10115`, France `75001`, Poland `00-950`;
 - nothing is added at checkout: delivery and any VAT are already in the price.
 
 **Keep PayPal on sandbox for Germany until EU VAT is sorted** (see below): `PAYPAL_BASE_URL` must
@@ -71,7 +80,8 @@ its storefront carousel), then open `/de` on the API. On the VM, add `/de` to th
 ## 4. Before selling for real (not tax advice)
 
 - **EU VAT:** a seller outside the EU selling goods to EU consumers from stock inside the EU usually
-  has to register for VAT. Your UK VAT registration does not cover the EU. Start at the
+  has to register for VAT, and charges the buyer's country's rate (Germany 19%, France 20%,
+  Poland 23%; `DE_VAT_PERCENT` is one rate for all, so check before switching it on). Your UK VAT registration does not cover the EU. Start at the
   [EU VAT One-Stop Shop](https://vat-one-stop-shop.ec.europa.eu/index_en) and the
   [German Federal Central Tax Office (BZSt)](https://www.bzst.de/EN/Home/home_node.html). When
   registered, set `DE_VAT_PERCENT=19`.

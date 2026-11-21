@@ -171,9 +171,11 @@ async function linkSites(map: SiteMap) {
     const uk = market !== "US"; // a European warehouse market (UK or Germany)
     const marketTag = market === "DE" ? "de" : "uk";
     const currency = market === "UK" ? "GBP" : market === "DE" ? "EUR" : "USD";
+    // Germany sites can deliver to other EU countries (shipTo); empty = Germany only.
+    const shipTo = market === "DE" ? (s.shipTo ?? []).map((c) => c.toUpperCase()) : [];
     const site = await db.website.upsert({
       where: { slug: s.slug },
-      update: { market, currency },
+      update: { market, currency, shipTo },
       create: {
         name: s.name,
         slug: s.slug,
@@ -181,6 +183,7 @@ async function linkSites(map: SiteMap) {
         category: s.cjCategories[0] ?? "general",
         market,
         currency,
+        shipTo,
       },
     });
     if (!uk) {
