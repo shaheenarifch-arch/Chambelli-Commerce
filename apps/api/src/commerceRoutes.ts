@@ -109,7 +109,10 @@ export async function commerceRoutes(app: FastifyInstance) {
   /** Public: lets the storefront show a test-mode notice, or hide checkout when payments are off. */
   app.get("/v1/payments/status", async (_req, reply) => {
     reply.header("Cache-Control", "no-store");
-    return paymentModes();
+    const modes = paymentModes();
+    // The storefront's card form needs Stripe's public key; it is safe to share.
+    const pk = config.stripe.publishableKey;
+    return modes.stripe !== "off" && pk ? { ...modes, stripePublishableKey: pk } : modes;
   });
 
   app.post("/v1/checkout", strict, async (req, reply) => {

@@ -59,6 +59,8 @@
     INVALID_PROVINCE: "Please enter a valid Canadian province or territory.",
     SHIPPING_COUNTRY_NOT_SUPPORTED: "Sorry, we can't deliver to that country from this store.",
     PAYPAL_NOT_CONFIGURED: "Checkout isn't open yet. Please try again soon.",
+    STRIPE_NOT_CONFIGURED:
+      "Card payments aren't available right now. Please try PayPal or try again soon.",
     IDEMPOTENCY_KEY_REUSED:
       "Please use the same email as your first try, or add the item to your cart again.",
     PAYMENT_NOT_COMPLETED: "The payment wasn't completed. You have not been charged.",
@@ -136,13 +138,14 @@
   }
 
   function showMode(modes) {
-    if (!modes || modes.paypal === "live") return;
+    if (!modes || modes.paypal === "live" || modes.stripe === "live") return;
     notice.hidden = false;
-    if (modes.paypal === "sandbox") {
+    if (modes.paypal === "sandbox" || modes.stripe === "sandbox") {
       notice.innerHTML =
-        "<strong>Test mode:</strong> payments run in PayPal's sandbox, so no real money is charged " +
-        "and no order ships. To try it, pay with a PayPal sandbox buyer account " +
-        '(<a href="https://developer.paypal.com/tools/sandbox/" target="_blank" rel="noopener">what is the PayPal sandbox?</a>).';
+        "<strong>Test mode:</strong> payments run in test mode, so no real money is charged " +
+        "and no order ships. Use a PayPal sandbox buyer account " +
+        '(<a href="https://developer.paypal.com/tools/sandbox/" target="_blank" rel="noopener">PayPal sandbox help</a>) ' +
+        'or a Stripe test card such as 4242 4242 4242 4242 (<a href="https://docs.stripe.com/testing" target="_blank" rel="noopener">Stripe test cards</a>).';
     } else {
       notice.classList.add("warn");
       notice.innerHTML =
@@ -159,6 +162,31 @@
       : "";
     if (params.get("cancelled")) {
       app.innerHTML = `<div class="panel"><h2>Payment cancelled</h2><p>You have not been charged and your cart is saved. You can try checkout again whenever you are ready.</p>${back}</div>`;
+      return;
+    }
+    // Card payments: Stripe sends the shopper back with the payment's client secret.
+    const piSecret = params.get("payment_intent_client_secret");
+    if (params.get("stripe") && piSecret) {
+      app.innerHTML = `<div class="panel"><h2>Confirming your payment…</h2><p>Please keep this page open.</p></div>`;
+      call("/v1/payments/status")
+        .then(({ body: modes }) => loadStripe(modes?.stripePublishableKey))
+        .then((stripe) => stripe.retrievePaymentIntent(piSecret))
+        .then(({ paymentIntent }) => {
+          const ref = esc(last?.orderNumber || "");
+          const st = paymentIntent?.status;
+          if (st === "succeeded" || st === "processing") {
+            if (last?.siteId) store.del(cartKey(last.siteId));
+            app.innerHTML =
+              st === "succeeded"
+                ? `<div class="panel"><h2>Thank you, your order is placed!</h2><p class="msg good">Order <strong>${ref}</strong> is confirmed. We will email you a tracking number once it ships.</p>${back}</div>`
+                : `<div class="panel"><h2>Payment processing</h2><p>Your bank is still confirming the payment. We will email you as soon as it clears. Order: <strong>${ref}</strong></p></div>`;
+          } else {
+            app.innerHTML = `<div class="panel"><h2>The payment did not go through</h2><p class="msg bad">You have not been charged. Your cart is saved, so you can try again with another card or PayPal.</p>${back}</div>`;
+          }
+        })
+        .catch(() => {
+          app.innerHTML = `<div class="panel"><h2>We couldn't confirm the payment</h2><p>If you were charged, email <a href="mailto:agents@getservices.ai">agents@getservices.ai</a> and we will sort it out.</p>${back}</div>`;
+        });
       return;
     }
     const token = params.get("token");
@@ -202,7 +230,8 @@
 
   function render(data, modes) {
     showMode(modes);
-    const checkoutOpen = !!modes && modes.paypal !== "off";
+    const paypalOpen = !!modes && modes.paypal !== "off";
+    const cardOpen = !!modes && modes.stripe !== "off" && !!modes.stripePublishableKey;
     const { site, product, variants } = data;
     const buyable = variants.filter((v) => v.inStock);
     let state = store.get(cartKey(site.id)) || {};
@@ -245,6 +274,12 @@
 
       <section id="checkout" class="panel" hidden aria-labelledby="co-title">
         <h2 id="co-title">Checkout</h2>
+        <div id="addons" class="addons" hidden>
+          <h3>Add before you pay</h3>
+          <p class="hint">Last-minute extras from this shop. One tap adds it to this same order.</p>
+          <div id="addon-row" class="addon-row"></div>
+          <p id="addon-msg" class="msg" aria-live="polite"></p>
+        </div>
         <p class="hint">Enter where we should deliver, then you'll pay securely on PayPal (account or guest card). Fields marked * are required.</p>
         <form id="co-form" novalidate>
           <div class="grid2">
@@ -261,12 +296,41 @@
               <p class="hint">Optional, only used by the courier if there's a delivery problem.</p></div>
           </div>
           <div class="row">
-            <button id="pay" type="submit"${checkoutOpen ? "" : " disabled"}>${
-              modes?.paypal === "sandbox" ? "Pay with PayPal (test mode)" : "Pay with PayPal"
-            }</button>
+            ${
+              cardOpen
+                ? `<button id="pay-card" type="submit" value="STRIPE">${
+                    modes.stripe === "sandbox" ? "Pay by card (test mode)" : "Pay by card"
+                  }</button>`
+                : ""
+            }
+            <button id="pay" type="submit" value="PAYPAL" class="${cardOpen ? "secondary" : ""}"${
+              paypalOpen ? "" : " disabled"
+            }>${modes?.paypal === "sandbox" ? "Pay with PayPal (test mode)" : "Pay with PayPal"}</button>
           </div>
+          <p class="hint">${
+            cardOpen
+              ? "Card payments are handled by Stripe and PayPal payments by PayPal; we never see your card number."
+              : "PayPal lets you pay with your PayPal account or as a guest with a card."
+          }</p>
           <p id="co-msg" class="msg" aria-live="polite"></p>
         </form>
+        <div id="card-box" hidden>
+          <h3>Card details</h3>
+          <p class="hint">Enter your card below. Your bank may ask you to confirm the payment.</p>
+          <div id="card-element"></div>
+          <div class="row"><button id="card-pay" type="button">Pay now</button></div>
+          <p id="card-msg" class="msg" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="related" class="panel" hidden aria-labelledby="rel-title">
+        <h2 id="rel-title">You may also like</h2>
+        <p class="hint">More from this shop. Tap a product to see it, or use the arrows to browse.</p>
+        <div class="rel-wrap">
+          <button type="button" class="rel-arrow prev" aria-label="Previous products">&#8249;</button>
+          <div id="rel-row" class="rel-row"></div>
+          <button type="button" class="rel-arrow next" aria-label="More products">&#8250;</button>
+        </div>
       </section>`;
 
     const $ = (id) => document.getElementById(id);
@@ -306,10 +370,15 @@
         })
         .catch(() => showCart(null));
 
-    /** Adds the chosen option; the API answers with the whole cart ({ cart, subtotal }). */
-    const addToCart = async (retried) => {
-      const v = current();
-      const qty = Math.min(20, Math.max(1, parseInt($("qty").value, 10) || 1));
+    /**
+     * Adds the chosen option (or, for a last-minute add-on, the given variant and quantity);
+     * the API answers with the whole cart ({ cart, subtotal }).
+     */
+    const addToCart = async (retried, item) => {
+      const v = item ? { id: item.variantId } : current();
+      const qty = item
+        ? item.quantity
+        : Math.min(20, Math.max(1, parseInt($("qty").value, 10) || 1));
       try {
         const { body } = await call("/v1/cart/items", {
           method: "POST",
@@ -328,11 +397,78 @@
         if (e.code === "CART_NOT_ORDERABLE" && !retried) {
           state = { sessionId: uuid() };
           save();
-          return addToCart(true);
+          return addToCart(true, item);
         }
         throw e;
       }
     };
+
+    // ------------------------------------------------ related items + last-minute add-ons
+    // Both come from this site's Chambelli feed (the same products as the site's carousel).
+    const marketPath = location.pathname.split("/p/")[0];
+    const productLink = (p) =>
+      `${marketPath}/p/${encodeURIComponent(p.slug)}?site=${encodeURIComponent(site.slug)}`;
+    const cardImg = (p) =>
+      p.imageUrl ? `<img src="${esc(safeImg(p.imageUrl))}" alt="" loading="lazy">` : "";
+    call(`/v1/carousels/${encodeURIComponent(site.slug)}/article-footer`)
+      .then(({ body }) => {
+        const others = (body?.products || []).filter(
+          (p) => p.slug !== product.slug && p.currency === site.currency,
+        );
+        if (!others.length) return;
+
+        $("rel-row").innerHTML = others
+          .slice(0, 16)
+          .map(
+            (p) => `<a class="rel-card" href="${esc(productLink(p))}">${cardImg(p)}
+              <span class="t">${esc(p.title)}</span>
+              <span class="p">${esc(money(p.price, p.currency))}</span></a>`,
+          )
+          .join("");
+        $("related").hidden = false;
+        const row = $("rel-row");
+        const step = () => Math.max(180, row.clientWidth * 0.8);
+        document
+          .querySelector(".rel-arrow.prev")
+          .addEventListener("click", () => row.scrollBy({ left: -step(), behavior: "smooth" }));
+        document
+          .querySelector(".rel-arrow.next")
+          .addEventListener("click", () => row.scrollBy({ left: step(), behavior: "smooth" }));
+
+        // Add-ons: the 4 lowest-priced other products, easy to add without leaving checkout.
+        const addons = [...others].sort((a, b) => a.price - b.price).slice(0, 4);
+        $("addon-row").innerHTML = addons
+          .map(
+            (p, i) => `<div class="addon-card">${cardImg(p)}
+              <span class="t">${esc(p.title)}</span>
+              <span class="p">${esc(money(p.price, p.currency))}</span>
+              <button type="button" class="secondary" data-i="${i}">Add</button></div>`,
+          )
+          .join("");
+        $("addons").hidden = false;
+        $("addon-row").addEventListener("click", async (ev) => {
+          const btn = ev.target.closest("button[data-i]");
+          if (!btn) return;
+          const p = addons[Number(btn.dataset.i)];
+          const msg = $("addon-msg");
+          btn.disabled = true;
+          msg.className = "msg";
+          msg.textContent = "Adding…";
+          try {
+            showCart(await addToCart(false, { variantId: p.variantId, quantity: 1 }));
+            btn.textContent = "Added ✓";
+            msg.className = "msg good";
+            msg.textContent = `Added "${p.title.slice(0, 60)}" to your order.`;
+          } catch (e) {
+            btn.disabled = false;
+            msg.className = "msg bad";
+            msg.textContent = errText(e.code);
+          }
+        });
+      })
+      .catch(() => {
+        /* no related items: the page works without them */
+      });
 
     $("add").addEventListener("click", async () => {
       const btn = $("add");
@@ -371,12 +507,15 @@
         return;
       }
       const val = (id) => $(id).value.trim() || undefined;
+      const provider = ev.submitter?.value === "STRIPE" ? "STRIPE" : "PAYPAL";
       // One key per cart: a retry (e.g. after cancelling on PayPal) reuses the same order.
       state.checkoutKey ||= `web-${uuid()}`;
       save();
-      $("pay").disabled = true;
+      const payButtons = [$("pay"), $("pay-card")].filter(Boolean);
+      payButtons.forEach((b) => (b.disabled = true));
       msg.className = "msg";
-      msg.textContent = "Taking you to PayPal…";
+      msg.textContent =
+        provider === "STRIPE" ? "Preparing the card form…" : "Taking you to PayPal…";
       try {
         const { body } = await call("/v1/checkout", {
           method: "POST",
@@ -395,18 +534,25 @@
               country: M.country,
               phone: val("phone"),
             },
-            paymentProvider: "PAYPAL",
+            paymentProvider: provider,
             idempotencyKey: state.checkoutKey,
           }),
         });
-        if (!body.approveUrl)
-          throw Object.assign(new Error("NO_APPROVE_URL"), { code: "PAYPAL_NOT_CONFIGURED" });
         store.set(LAST, {
           url: location.href,
           title: product.title,
           siteId: site.id,
           orderNumber: body.orderNumber,
         });
+        if (provider === "STRIPE") {
+          if (!body.clientSecret)
+            throw Object.assign(new Error("NO_CLIENT_SECRET"), { code: "STRIPE_NOT_CONFIGURED" });
+          await showCardForm(body, val("email"));
+          msg.textContent = "";
+          return;
+        }
+        if (!body.approveUrl)
+          throw Object.assign(new Error("NO_APPROVE_URL"), { code: "PAYPAL_NOT_CONFIGURED" });
         location.assign(body.approveUrl);
       } catch (e) {
         // This cart was already turned into an order: start a fresh cart for the next try.
@@ -417,8 +563,53 @@
         }
         msg.className = "msg bad";
         msg.textContent = errText(e.code);
-        $("pay").disabled = false;
+        payButtons.forEach((b) => (b.disabled = false));
+        if (!paypalOpen) $("pay").disabled = true;
       }
+    });
+
+    /** Shows Stripe's secure card form for this order, then confirms the payment. */
+    async function showCardForm(order, email) {
+      const stripe = await loadStripe(modes.stripePublishableKey);
+      const elements = stripe.elements({ clientSecret: order.clientSecret });
+      const card = elements.create("payment", { layout: "tabs" });
+      $("card-box").hidden = false;
+      $("co-form").hidden = true;
+      card.mount("#card-element");
+      $("card-pay").textContent = `Pay ${money(order.total, order.currency)} now`;
+      $("card-box").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("card-pay").onclick = async () => {
+        const cmsg = $("card-msg");
+        $("card-pay").disabled = true;
+        cmsg.className = "msg";
+        cmsg.textContent = "Processing your payment…";
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: `${location.origin}${marketPath}/checkout/return?stripe=1`,
+            receipt_email: email,
+          },
+        });
+        // confirmPayment only returns here when the payment could not go through.
+        cmsg.className = "msg bad";
+        cmsg.textContent = error?.message || "The payment did not go through. Please try again.";
+        $("card-pay").disabled = false;
+      };
+    }
+  }
+
+  /** Loads Stripe.js once (https://docs.stripe.com/js). */
+  function loadStripe(publishableKey) {
+    if (!publishableKey)
+      return Promise.reject(Object.assign(new Error("NO_KEY"), { code: "STRIPE_NOT_CONFIGURED" }));
+    if (window.Stripe) return Promise.resolve(window.Stripe(publishableKey));
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://js.stripe.com/v3/";
+      s.onload = () => resolve(window.Stripe(publishableKey));
+      s.onerror = () =>
+        reject(Object.assign(new Error("STRIPE_LOAD"), { code: "STRIPE_NOT_CONFIGURED" }));
+      document.head.appendChild(s);
     });
   }
 })();
