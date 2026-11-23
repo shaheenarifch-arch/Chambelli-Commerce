@@ -36,7 +36,11 @@ In `config/cj-site-map.json`, give a site `"market": "DE"`. The next sync then:
   the UK products it had before);
 - links it only products from the Germany sync (tag `de`), filtered by its `titleMatch` words
   (Germany sites need `titleMatch`, because these products have no CJ category);
-- keeps each EUR price in step with CJ's German warehouse stock every 6 hours.
+- checks CJ's German warehouse stock every 6 hours; sold-out products come off the carousel by
+  themselves;
+- never changes a live price by itself. When CJ's cost moves a price, the new price waits under
+  **New prices waiting for your OK** on the hub's Carousels page until you accept it or keep the
+  current one.
 
 Products with US, UK or AU plugs are kept off buybeststore.com (`titleExclude`); EU plugs are fine.
 
