@@ -106,6 +106,19 @@ export async function commerceRoutes(app: FastifyInstance) {
     return carts.summary(cartId);
   });
 
+  /**
+   * Checkout order summary: sets an item's quantity; 0 removes it. POST (not PATCH/DELETE) so the
+   * storefront's existing CORS rules cover it. Answers with the whole cart, like POST /v1/cart/items.
+   */
+  app.post("/v1/cart/:cartId/items/:variantId", async (req) => {
+    const { cartId, variantId } = z
+      .object({ cartId: z.string().uuid(), variantId: z.string().uuid() })
+      .parse(req.params);
+    const { quantity } = z.object({ quantity: z.number().int().min(0).max(20) }).parse(req.body);
+    await carts.setQuantity(cartId, variantId, quantity);
+    return carts.summary(cartId);
+  });
+
   /** Public: lets the storefront show a test-mode notice, or hide checkout when payments are off. */
   app.get("/v1/payments/status", async (_req, reply) => {
     reply.header("Cache-Control", "no-store");
