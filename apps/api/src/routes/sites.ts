@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { db, ProductStatus } from "@chambelli/database";
 import { CJConnector } from "@chambelli/cj";
-import { computePrice, ukPrice, dePrice } from "@chambelli/pricing";
+import { computePrice, ukPrice, dePrice, ending99 } from "@chambelli/pricing";
 import { requireAdmin } from "../auth.js";
 import { config } from "../config.js";
 
@@ -17,12 +17,6 @@ const PLACEMENT = "article-footer";
 const MARGIN_PERCENT = 30;
 const CJ_DELAY_MS = 1100;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** Rounds up to a .99 ending. */
-const ending99 = (p: number) => {
-  const c = Math.floor(p) + 0.99;
-  return Number((c + 1e-9 >= p ? c : Math.floor(p) + 1.99).toFixed(2));
-};
 
 export async function siteRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAdmin(config.adminApiKey));
@@ -41,7 +35,7 @@ export async function siteRoutes(app: FastifyInstance) {
             status: true,
             variants: {
               where: { currency: { in: ["GBP", "EUR"] }, active: true, quantity: { gt: 0 } },
-              select: { currency: true },
+              select: { currency: true, pendingPrice: true },
             },
           },
         },
@@ -60,6 +54,12 @@ export async function siteRoutes(app: FastifyInstance) {
         live: mine.filter(isLive).length,
         waiting: mine.filter((r) => r.active && !isLive(r)).length,
         removed: mine.filter((r) => !r.active).length,
+        // New CJ prices waiting for your OK on live products (UK and Germany sites).
+        priceChanges: mine.filter(
+          (r) =>
+            isLive(r) &&
+            r.product.variants.some((v) => v.currency === s.currency && v.pendingPrice !== null),
+        ).length,
         approving: approving.has(s.id),
       };
     });
@@ -171,6 +171,41 @@ export async function siteRoutes(app: FastifyInstance) {
     return reply.code(202).send({ started: true, count: rows.length });
   });
 
+  /**
+   * Price hold (UK and Germany sites): accept or turn down the new CJ prices waiting on the
+   * given variants. Accepting makes the new price live; turning it down keeps the current price
+   * and the sync won't offer that same price again.
+   */
+  app.post("/v1/admin/sites/:slug/prices", async (req) => {
+    const { slug } = z.object({ slug: z.string().max(80) }).parse(req.params);
+    const b = z
+      .object({ variantIds: z.array(z.string().uuid()).min(1).max(50), accept: z.boolean() })
+      .parse(req.body);
+    const site = await db.website.findUniqueOrThrow({ where: { slug } });
+    const variants = await db.productVariant.findMany({
+      where: {
+        id: { in: b.variantIds },
+        currency: site.currency,
+        pendingPrice: { not: null },
+        product: { assignments: { some: { websiteId: site.id, placement: PLACEMENT } } },
+      },
+      select: { id: true, pendingPrice: true },
+    });
+    for (const v of variants)
+      await db.productVariant.update({
+        where: { id: v.id },
+        data: b.accept
+          ? {
+              price: v.pendingPrice!,
+              pendingPrice: null,
+              pendingPriceAt: null,
+              declinedPrice: null,
+            }
+          : { declinedPrice: v.pendingPrice, pendingPrice: null, pendingPriceAt: null },
+      });
+    return { updated: variants.length };
+  });
+
   /** Take products off a site's carousel (or put them back). */
   app.post("/v1/admin/sites/:slug/assignments", async (req) => {
     const { slug } = z.object({ slug: z.string().max(80) }).parse(req.params);
@@ -238,6 +273,10 @@ async function approveUk(
           cost: priced.cost,
           shippingCost: priced.shipping,
           price,
+          // Approving sets a fresh price, so any held price change is settled.
+          pendingPrice: null,
+          pendingPriceAt: null,
+          declinedPrice: null,
           quantity: stock,
           active: true,
         },
@@ -292,6 +331,10 @@ async function approveDe(
           cost: priced.cost,
           shippingCost: priced.shipping,
           price,
+          // Approving sets a fresh price, so any held price change is settled.
+          pendingPrice: null,
+          pendingPriceAt: null,
+          declinedPrice: null,
           quantity: stock,
           active: true,
         },
