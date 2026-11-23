@@ -35,6 +35,21 @@ ShopDress (shopdress.us) keeps its own department plan inside `scripts/cj-shortl
 | `onlyOnSite`         | Optional, top level. `{ "shorts": "shopdress" }`: every CJ **US-warehouse** product whose title has the word is linked to that site (as a draft to approve) and taken off every other site's carousel. China-warehouse items are never linked. |
 | `titleExclude`       | Optional. Never link a product whose title contains one of these whole words (e.g. no prescription items).                                                                                                                                     |
 
+## What shoppers see on the carousels
+
+- **Words in `titleExclude` also clean up.** Each sync takes products already on a site whose title
+  has one of its `titleExclude` words off that carousel. They show as removed on the hub's
+  Carousels page. Putting one back by hand lasts only until the next sync, so remove the word
+  first. Removed products don't count toward `productsPerSite`, so the site refills with new
+  drafts for you to approve.
+- **Supplier notes are hidden.** CJ suppliers sometimes put shipping notes in titles, like
+  "(TikTok, temu pick-up service)" or "[Unable ship on weekends, TK/TEMU only…". The carousel and
+  the product page leave them out. The hub still shows the full CJ title.
+- **Price limit.** A carousel never shows a product priced over `CAROUSEL_MAX_PRICE` (default 500,
+  in the site's own currency). CJ lists some items at a placeholder cost near $999, which priced
+  them over $1,400. To change the limit, set `CAROUSEL_MAX_PRICE` in `/etc/chambelli/env` and update
+  the server ([docs/DEPLOY.md](DEPLOY.md)).
+
 ## Running the shortlist
 
 1. Add the repository secret `CJ_API_KEY` once: **Settings → Secrets and variables → Actions → New
