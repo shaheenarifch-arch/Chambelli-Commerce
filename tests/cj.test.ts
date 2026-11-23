@@ -182,24 +182,27 @@ describe("website carousel site map", async () => {
     expect(titleFitsSite("Makeup Brush Set", site)).toBe(false);
   });
 
-  it("sells the 3 UK sites from UK stock with title rules and UK plugs only", () => {
+  it("sells the 2 UK sites from UK stock with title rules and UK plugs only", () => {
     const uk = map.sites.filter((s: { market?: string }) => s.market === "UK");
     expect(uk.map((s: { domain: string }) => s.domain).sort()).toEqual([
       "buybeststores.uk",
       "ezpass.uk",
-      "jewllery.store",
     ]);
     for (const s of uk) expect(s.titleMatch.length).toBeGreaterThan(0);
     const ez = map.sites.find((s: { slug: string }) => s.slug === "ezpassuk");
     expect(ez.titleExclude).toContain("us plug");
   });
 
-  it("sells buybeststore.com from Germany stock with EU plugs allowed (docs/DE.md)", () => {
+  it("sells buybeststore.com and jewllery.store from Germany stock (docs/DE.md)", () => {
     const de = map.sites.filter((s: { market?: string }) => s.market === "DE");
-    expect(de.map((s: { domain: string }) => s.domain)).toEqual(["buybeststore.com"]);
-    expect(de[0].titleMatch.length).toBeGreaterThan(0);
-    expect(de[0].titleExclude).toEqual(expect.arrayContaining(["us plug", "uk plug"]));
-    expect(de[0].titleExclude).not.toContain("eu plug");
+    expect(de.map((s: { domain: string }) => s.domain).sort()).toEqual([
+      "buybeststore.com",
+      "jewllery.store",
+    ]);
+    for (const s of de) expect(s.titleMatch.length).toBeGreaterThan(0);
+    const bbs = de.find((s: { slug: string }) => s.slug === "buybeststore");
+    expect(bbs.titleExclude).toEqual(expect.arrayContaining(["us plug", "uk plug"]));
+    expect(bbs.titleExclude).not.toContain("eu plug");
   });
 
   it("matches whole words only, so 'safe' no longer pulls in 'safety' items", () => {

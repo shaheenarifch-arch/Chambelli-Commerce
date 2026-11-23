@@ -4,8 +4,11 @@ Sells CJ products held in **German (DE) warehouses** to shoppers in Germany, pri
 delivery in Germany built in. Checkout runs in Chambelli itself. Built the same way as the
 [UK chapter](UK.md).
 
-First (and for now only) Germany site: [buybeststore.com](https://buybeststore.com), moved here from
-the UK chapter.
+Germany sites, both moved here from the UK chapter:
+
+- [buybeststore.com](https://buybeststore.com): home, kitchen, beauty and tech.
+- [jewllery.store](https://jewllery.store): jewellery (necklaces, earrings, bracelets, rings,
+  watches), next to its Polish and French jewellery brands.
 
 ## 1. Turn on the Germany sync
 
