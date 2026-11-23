@@ -2,7 +2,9 @@
   "_help": "Which CJ categories feed which website (20 to 50 products each). Edit this file to change the mapping; no code change needed. titleMatch: a product title must contain one of these words; titleExclude: never link a product whose title contains one of these. onlyOnSite: products whose title contains the word go only to that site (US-warehouse stock only). Guide: docs/CJ-SITE-MAP.md",
   "productsPerSite": 50,
   "minProductsPerSite": 20,
-  "onlyOnSite": { "shorts": "shopdress" },
+  "onlyOnSite": {
+    "shorts": "shopdress"
+  },
   "sites": [
     {
       "slug": "shopdress",
@@ -300,7 +302,8 @@
       "name": "Outdoor Sports Fun",
       "domain": "outdoorsports.fun",
       "cjCategories": ["Sports & Outdoors"],
-      "terms": ["camping lantern", "hiking backpack", "fishing gear", "yoga mat", "water bottle"]
+      "terms": ["camping lantern", "hiking backpack", "fishing gear", "yoga mat", "water bottle"],
+      "titleExclude": ["kitchen", "go kart", "kart"]
     },
     {
       "slug": "flyhorizons",
@@ -686,7 +689,9 @@
         "trampoline",
         "stock pot",
         "bug zapper",
-        "mosquito"
+        "mosquito",
+        "stun",
+        "pint"
       ]
     },
     {
@@ -904,7 +909,20 @@
         "face mask filter",
         "sleep mask",
         "n95",
-        "respirator"
+        "respirator",
+        "christmas tree",
+        "tree topper",
+        "sleigh",
+        "sled",
+        "ornament",
+        "centerpiece",
+        "figurine",
+        "christmas village",
+        "garden stake",
+        "nail sticker",
+        "armoire",
+        "coat",
+        "wall decor"
       ]
     },
     {
@@ -959,7 +977,9 @@
         "carry",
         "carving",
         "cardigan",
-        "caramel"
+        "caramel",
+        "skincare",
+        "skin care"
       ]
     },
     {

@@ -315,3 +315,21 @@ describe("onlyOnSite", () => {
     expect(titleFitsSite("Short Sleeve Blouse", women!)).toBe(true);
   });
 });
+
+describe("poor-fit products stay off their sites", () => {
+  const map = JSON.parse(readFileSync("config/cj-site-map.json", "utf8")) as SiteMap;
+  const ex = (slug: string) => ({
+    titleExclude: map.sites.find((s) => s.slug === slug)!.titleExclude,
+  });
+  it("takes the live misfits off and keeps fitting products", () => {
+    expect(titleFitsSite("Portable Skincare Fridge", ex("drivezone"))).toBe(false);
+    expect(titleFitsSite("Car Battery Jump Starter", ex("drivezone"))).toBe(true);
+    expect(titleFitsSite("Lightning Rod 90,000,000* Stun Flashlight", ex("firearmsafety"))).toBe(
+      false,
+    );
+    expect(titleFitsSite("Gun Safe Dehumidifier Rod", ex("firearmsafety"))).toBe(true);
+    expect(titleFitsSite("Pink 12V Electric Go Kart for Kids", ex("outdoorsports"))).toBe(false);
+    expect(titleFitsSite("7ft Lighted Artificial Christmas Tree", ex("costumescout"))).toBe(false);
+    expect(titleFitsSite("Adult Santa Claus Costume Suit Set", ex("costumescout"))).toBe(true);
+  });
+});

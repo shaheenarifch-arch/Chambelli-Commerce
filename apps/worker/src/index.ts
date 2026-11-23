@@ -183,6 +183,25 @@ async function linkSites(map: SiteMap) {
         currency,
       },
     });
+    // Take products whose title has one of this site's titleExclude words off its carousel, so a
+    // word added to the site map also clears products linked before (e.g. a skincare fridge on
+    // a car site). They show as "removed" on the hub. Help: docs/CJ-SITE-MAP.md
+    if (s.titleExclude?.length) {
+      const linked = await db.productAssignment.findMany({
+        where: { websiteId: site.id, placement: SITE_PLACEMENT, active: true },
+        select: { id: true, product: { select: { title: true } } },
+      });
+      const off = linked
+        .filter((a) => !titleFitsSite(a.product.title, { titleExclude: s.titleExclude }))
+        .map((a) => a.id);
+      if (off.length) {
+        await db.productAssignment.updateMany({
+          where: { id: { in: off } },
+          data: { active: false },
+        });
+        console.log(`${s.domain}: took ${off.length} products that don't fit off the carousel`);
+      }
+    }
     if (!uk) {
       // US sites: drop waiting links to products CJ has no US-warehouse stock for (they can
       // never go live). Live products, removed ones and your CJ "Added Products" are kept.
@@ -213,8 +232,9 @@ async function linkSites(map: SiteMap) {
       if (pruned.count)
         console.log(`${s.domain}: dropped ${pruned.count} products not stocked in ${market}`);
     }
+    // Removed products don't count, so a site refills to productsPerSite after a cleanup.
     const have = await db.productAssignment.count({
-      where: { websiteId: site.id, placement: SITE_PLACEMENT },
+      where: { websiteId: site.id, placement: SITE_PLACEMENT, active: true },
     });
     let room = map.productsPerSite - have;
     if (room <= 0) continue;
