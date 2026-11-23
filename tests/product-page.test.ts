@@ -139,6 +139,10 @@ describe("product page extras", () => {
     expect(src).toContain('id="addons"');
     expect(src).toContain('value="STRIPE"');
     expect(src).toContain('value="PAYPAL"');
+    // Stepped checkout with an always-visible order summary that can change quantities.
+    expect(src).toContain('id="summary"');
+    expect(src).toContain('id="st-3"');
+    expect(src).toContain("/items/${encodeURIComponent(line.variantId)}");
   });
 });
 

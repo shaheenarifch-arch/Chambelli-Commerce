@@ -47,6 +47,45 @@
     postalEg: "02108",
   };
 
+  /** Country name, postcode check and the tax row of the order summary, per market. */
+  const MARKET_NAME =
+    { US: "the US", CA: "Canada", UK: "the UK", DE: "Germany" }[market] || "the US";
+  const POSTAL_RE = {
+    US: /^\d{5}(-\d{4})?$/,
+    CA: /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
+    UK: /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/,
+    DE: /^\d{5}$/,
+  }[market];
+  const TAX_ROW = {
+    CA: ["GST/HST", "Added at payment"],
+    UK: ["VAT", "Included"],
+    DE: ["VAT", "Included"],
+  }[market];
+  /**
+   * Expected arrival: 5 to 10 business days from today (the usual time for orders shipped from
+   * CJ's local warehouses, the same promise ShopDress makes). Shown as dates, e.g. "Dec 1 to Dec 8".
+   */
+  const etaText = () => {
+    const add = (days) => {
+      const d = new Date();
+      while (days > 0) {
+        d.setDate(d.getDate() + 1);
+        if (d.getDay() !== 0 && d.getDay() !== 6) days--;
+      }
+      return d;
+    };
+    try {
+      const f = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+      return `${f.format(add(5))} to ${f.format(add(10))}`;
+    } catch {
+      return "in 5 to 10 business days";
+    }
+  };
+
   /** Friendly wording for errors the API can return. */
   const ERRORS = {
     INSUFFICIENT_STOCK:
@@ -54,6 +93,7 @@
     INVENTORY_CHANGED:
       "Stock changed while you were shopping. Please add the item to your cart again.",
     INVALID_QUANTITY: "You can buy up to 20 of each item.",
+    CART_ITEM_NOT_FOUND: "That item is no longer in your cart.",
     CART_NOT_ORDERABLE: "Your cart has already been checked out. Please add the item again.",
     INVALID_POSTAL_CODE: `Please check your ${M.postal.toLowerCase()}.`,
     INVALID_PROVINCE: "Please enter a valid Canadian province or territory.",
@@ -272,54 +312,90 @@
         </div>
       </article>
 
-      <section id="checkout" class="panel" hidden aria-labelledby="co-title">
+      <section id="checkout" class="checkout" hidden aria-labelledby="co-title">
         <h2 id="co-title">Checkout</h2>
-        <div id="addons" class="addons" hidden>
-          <h3>Add before you pay</h3>
-          <p class="hint">Last-minute extras from this shop. One tap adds it to this same order.</p>
-          <div id="addon-row" class="addon-row"></div>
-          <p id="addon-msg" class="msg" aria-live="polite"></p>
-        </div>
-        <p class="hint">Enter where we should deliver, then you'll pay securely on PayPal (account or guest card). Fields marked * are required.</p>
-        <form id="co-form" novalidate>
-          <div class="grid2">
-            <div><label for="email">Email *</label><input id="email" type="email" autocomplete="email" required maxlength="254">
-              <p class="hint">For your receipt and tracking number.</p></div>
-            <div><label for="name">Full name *</label><input id="name" autocomplete="name" required maxlength="200"></div>
-            <div><label for="line1">Address line 1 *</label><input id="line1" autocomplete="address-line1" required maxlength="200"></div>
-            <div><label for="line2">Address line 2</label><input id="line2" autocomplete="address-line2" maxlength="200">
-              <p class="hint">Apartment, suite or unit (optional).</p></div>
-            <div><label for="city">City *</label><input id="city" autocomplete="address-level2" required maxlength="100"></div>
-            <div><label for="region">${esc(M.region)}${M.regionReq ? " *" : ""}</label><input id="region" autocomplete="address-level1" maxlength="100"${M.regionReq ? " required" : ""}></div>
-            <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="e.g. ${esc(M.postalEg)}"></div>
-            <div><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" maxlength="40">
-              <p class="hint">Optional, only used by the courier if there's a delivery problem.</p></div>
+        <p class="hint">Three quick steps. Fields marked * are required. Your order summary stays on screen, so you can change it before you pay.</p>
+        <ol class="steps" aria-label="Checkout steps">
+          <li id="st-1" class="on" aria-current="step">Delivery</li>
+          <li id="st-2">Payment</li>
+          <li id="st-3">Place order</li>
+        </ol>
+        <div class="co-grid">
+          <div class="co-main">
+            <div id="err-summary" class="err-summary" role="alert" tabindex="-1" hidden></div>
+            <form id="co-form" novalidate>
+              <section id="step-delivery" class="step-card current" aria-labelledby="h-delivery">
+                <h3 id="h-delivery">1. Delivery <button type="button" class="edit" id="edit-delivery" hidden>Edit</button></h3>
+                <p id="recap-delivery" class="recap" hidden></p>
+                <div id="fields-delivery">
+                  <p class="eta" id="eta"></p>
+                  <div class="grid2">
+                    <div><label for="email">Email *</label><input id="email" type="email" autocomplete="email" required maxlength="254" aria-describedby="email-hint">
+                      <p class="hint" id="email-hint">For your receipt and tracking number.</p></div>
+                    <div><label for="name">Full name *</label><input id="name" autocomplete="name" required maxlength="200"></div>
+                    <div><label for="line1">Address line 1 *</label><input id="line1" autocomplete="address-line1" required maxlength="200"></div>
+                    <div><label for="line2">Address line 2</label><input id="line2" autocomplete="address-line2" maxlength="200" aria-describedby="line2-hint">
+                      <p class="hint" id="line2-hint">Apartment, suite or unit (optional).</p></div>
+                    <div><label for="city">City *</label><input id="city" autocomplete="address-level2" required maxlength="100"></div>
+                    <div><label for="region">${esc(M.region)}${M.regionReq ? " *" : ""}</label><input id="region" autocomplete="address-level1" maxlength="100"${M.regionReq ? " required" : ""}></div>
+                    <div><label for="postal">${esc(M.postal)} *</label><input id="postal" autocomplete="postal-code" required maxlength="20" placeholder="${esc(M.postalEg)}"></div>
+                    <div><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" maxlength="40" aria-describedby="phone-hint">
+                      <p class="hint" id="phone-hint">Optional, only used by the courier if there's a delivery problem.</p></div>
+                  </div>
+                  <p class="hint">We deliver within ${esc(MARKET_NAME)} only.</p>
+                  <div class="co-actions"><button id="to-pay" type="button">Continue to payment</button></div>
+                </div>
+              </section>
+
+              <section id="step-pay" class="step-card" aria-labelledby="h-pay">
+                <h3 id="h-pay">2. Payment <button type="button" class="edit" id="edit-pay" hidden>Edit</button></h3>
+                <p id="recap-pay" class="recap" hidden></p>
+                <div id="fields-pay" hidden>
+                  <fieldset class="pay-choice">
+                    <legend class="hint">Choose how to pay.</legend>
+                    <label class="pay-tile${cardOpen ? "" : " off"}"><input type="radio" name="pay" value="STRIPE"${cardOpen ? " checked" : " disabled"}>
+                      <span>${modes?.stripe === "sandbox" ? "Card (test mode)" : "Card"}<small>${cardOpen ? "Visa, Mastercard, Amex. Apple Pay and Google Pay show up when your device offers them." : "Card payments aren't available right now."}</small></span></label>
+                    <label class="pay-tile${paypalOpen ? "" : " off"}"><input type="radio" name="pay" value="PAYPAL"${!cardOpen && paypalOpen ? " checked" : ""}${paypalOpen ? "" : " disabled"}>
+                      <span>${modes?.paypal === "sandbox" ? "PayPal (test mode)" : "PayPal"}<small>Pay with your PayPal account, or as a guest with a card on PayPal's page.</small></span></label>
+                  </fieldset>
+                  <div class="co-actions"><button id="pay" type="submit"${cardOpen || paypalOpen ? "" : " disabled"}>Continue</button></div>
+                  <ul class="trust">
+                    <li>Secure checkout: card details go straight to ${cardOpen ? "Stripe or PayPal" : "PayPal"}, never to us.</li>
+                    <li>Delivery is included in the price.</li>
+                    <li>Questions or returns? See <a href="#help-title">Help &amp; questions</a> below.</li>
+                  </ul>
+                </div>
+              </section>
+            </form>
+
+            <section id="step-place" class="step-card" aria-labelledby="h-place">
+              <h3 id="h-place">3. Place order</h3>
+              <div id="card-box" hidden>
+                <p class="hint">Enter your card below. Your bank may ask you to confirm the payment. <a href="https://support.stripe.com/" target="_blank" rel="noopener">Stripe Support</a></p>
+                <div id="card-element"></div>
+                <div class="co-actions"><button id="card-pay" type="button">Place order</button></div>
+                <p id="card-msg" class="msg" aria-live="polite"></p>
+              </div>
+            </section>
+            <p id="co-msg" class="msg" aria-live="polite"></p>
           </div>
-          <div class="row">
-            ${
-              cardOpen
-                ? `<button id="pay-card" type="submit" value="STRIPE">${
-                    modes.stripe === "sandbox" ? "Pay by card (test mode)" : "Pay by card"
-                  }</button>`
-                : ""
-            }
-            <button id="pay" type="submit" value="PAYPAL" class="${cardOpen ? "secondary" : ""}"${
-              paypalOpen ? "" : " disabled"
-            }>${modes?.paypal === "sandbox" ? "Pay with PayPal (test mode)" : "Pay with PayPal"}</button>
-          </div>
-          <p class="hint">${
-            cardOpen
-              ? "Card payments are handled by Stripe and PayPal payments by PayPal; we never see your card number."
-              : "PayPal lets you pay with your PayPal account or as a guest with a card."
-          }</p>
-          <p id="co-msg" class="msg" aria-live="polite"></p>
-        </form>
-        <div id="card-box" hidden>
-          <h3>Card details</h3>
-          <p class="hint">Enter your card below. Your bank may ask you to confirm the payment.</p>
-          <div id="card-element"></div>
-          <div class="row"><button id="card-pay" type="button">Pay now</button></div>
-          <p id="card-msg" class="msg" aria-live="polite"></p>
+
+          <aside class="co-side" aria-label="Order summary">
+            <details id="summary" class="summary">
+              <summary><span>Order summary <span id="sum-count"></span></span><span><strong id="sum-total"></strong> <span class="chev" aria-hidden="true">&#9662;</span></span></summary>
+              <div class="summary-body">
+                <div id="sum-lines"></div>
+                <p id="sum-msg" class="msg" aria-live="polite"></p>
+                <dl class="totals" id="sum-totals"></dl>
+                <div id="addons" class="addons" hidden>
+                  <h3>Add before you pay</h3>
+                  <p class="hint">Last-minute extras from this shop. One tap adds it to this same order.</p>
+                  <div id="addon-row" class="addon-row"></div>
+                  <p id="addon-msg" class="msg" aria-live="polite"></p>
+                </div>
+              </div>
+            </details>
+          </aside>
         </div>
       </section>
 
@@ -350,14 +426,83 @@
     sel?.addEventListener("change", showPrice);
     showPrice();
 
+    let lastSummary = null;
+    let locked = false; // true once the order exists: the summary can no longer change
     const showCart = (summary) => {
+      lastSummary = summary;
       const n = summary?.cart?.items?.reduce((s, i) => s + i.quantity, 0) || 0;
       cartCount.textContent = n
         ? `Cart: ${n} item${n > 1 ? "s" : ""} · ${money(summary.subtotal, site.currency)}`
         : "";
       $("go").hidden = !n;
       if (!n) $("checkout").hidden = true;
+      renderSummary(summary);
     };
+
+    /** The order summary: photos, quantity, Remove, delivery, tax and total. */
+    function renderSummary(summary, order) {
+      const lines = summary?.lines || [];
+      const n = lines.reduce((s, l) => s + l.quantity, 0);
+      const total = order ? order.total : summary?.subtotal || 0;
+      $("sum-count").textContent = n ? `(${n} item${n > 1 ? "s" : ""})` : "";
+      $("sum-total").textContent = money(total, site.currency);
+      $("sum-lines").innerHTML = lines
+        .map(
+          (l) => `<div class="line" data-v="${esc(l.variantId)}">
+            ${l.imageUrl ? `<img src="${esc(safeImg(l.imageUrl))}" alt="" loading="lazy">` : "<span></span>"}
+            <div><div class="t">${esc(l.title)}</div>
+              ${l.option ? `<div class="o">${esc(l.option)}</div>` : ""}
+              ${
+                locked
+                  ? `<div class="o">Qty ${l.quantity}</div>`
+                  : `<span class="stepper"><button type="button" data-q="-1" aria-label="One fewer ${esc(l.title)}">&minus;</button><span aria-live="polite">${l.quantity}</span><button type="button" data-q="1" aria-label="One more ${esc(l.title)}"${l.quantity >= (l.maxQuantity || 20) ? " disabled" : ""}>+</button></span><button type="button" class="rm" data-rm="1">Remove</button>`
+              }</div>
+            <div class="lt">${esc(money(l.lineTotal, site.currency))}</div></div>`,
+        )
+        .join("");
+      const rows = [
+        ["Subtotal", money(summary?.subtotal || 0, site.currency)],
+        ["Delivery", '<span class="free">Included</span>'],
+      ];
+      if (TAX_ROW)
+        rows.push([
+          TAX_ROW[0],
+          order && market === "CA"
+            ? money(order.total - (summary?.subtotal || 0), site.currency)
+            : TAX_ROW[1],
+        ]);
+      $("sum-totals").innerHTML =
+        rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("") +
+        `<dt class="grand">${order || market !== "CA" ? "Total" : "Estimated total"}</dt><dd class="grand">${esc(money(total, site.currency))}</dd>`;
+      payLabel();
+    }
+
+    /** Quantity buttons and Remove in the order summary. */
+    $("sum-lines").addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("button");
+      const row = ev.target.closest(".line");
+      if (!btn || !row || locked || !state.cartId) return;
+      const line = (lastSummary?.lines || []).find((l) => l.variantId === row.dataset.v);
+      if (!line) return;
+      const quantity = btn.dataset.rm ? 0 : line.quantity + Number(btn.dataset.q || 0);
+      const msg = $("sum-msg");
+      row.querySelectorAll("button").forEach((b) => (b.disabled = true));
+      msg.className = "msg";
+      msg.textContent = "Updating…";
+      try {
+        const { body } = await call(
+          `/v1/cart/${encodeURIComponent(state.cartId)}/items/${encodeURIComponent(line.variantId)}`,
+          { method: "POST", body: JSON.stringify({ quantity }) },
+        );
+        msg.textContent = quantity ? "" : `Removed "${line.title.slice(0, 60)}".`;
+        showCart(body);
+      } catch (e) {
+        msg.className = "msg bad";
+        msg.textContent = errText(e.code);
+        row.querySelectorAll("button").forEach((b) => (b.disabled = false));
+      }
+    });
+
     if (state.cartId)
       call(`/v1/cart/${encodeURIComponent(state.cartId)}`)
         .then(({ body }) => {
@@ -487,35 +632,166 @@
       btn.disabled = false;
     });
 
+    // ------------------------------------------------------------------ checkout steps
+    // Step 1 Delivery -> step 2 Payment -> step 3 Place order. Steps 1 and 2 fold into one-line
+    // recaps with Edit links until the order is created; after that they are locked.
+    $("eta").textContent = `Delivery included. Usually arrives ${etaText()}.`;
+    const wide = window.matchMedia ? window.matchMedia("(min-width: 901px)") : { matches: true };
+    $("summary").open = wide.matches;
+
+    function setStep(n) {
+      [1, 2, 3].forEach((i) => {
+        const li = $(`st-${i}`);
+        li.className = i < n ? "done" : i === n ? "on" : "";
+        if (i === n) li.setAttribute("aria-current", "step");
+        else li.removeAttribute("aria-current");
+      });
+      $("step-delivery").classList.toggle("current", n === 1);
+      $("step-pay").classList.toggle("current", n === 2);
+      $("step-place").classList.toggle("current", n === 3);
+      $("fields-delivery").hidden = n !== 1;
+      $("recap-delivery").hidden = n === 1;
+      $("edit-delivery").hidden = n === 1 || locked;
+      $("fields-pay").hidden = n !== 2;
+      $("recap-pay").hidden = n !== 3;
+      $("edit-pay").hidden = n !== 3 || locked;
+    }
+
     $("go").addEventListener("click", () => {
       $("checkout").hidden = false;
+      setStep(1);
       $("checkout").scrollIntoView({ behavior: "smooth", block: "start" });
       $("email").focus();
     });
+    $("edit-delivery").addEventListener("click", () => {
+      setStep(1);
+      $("email").focus();
+    });
+    $("edit-pay").addEventListener("click", () => setStep(2));
+
+    /** Checks the delivery fields; shows each problem under its field and in a list at the top. */
+    const FIELD_NAMES = {
+      email: "Email",
+      name: "Full name",
+      line1: "Address line 1",
+      city: "City",
+      region: M.region.replace(" (optional)", ""),
+      postal: M.postal,
+    };
+    function checkDelivery() {
+      const problems = [];
+      for (const id of Object.keys(FIELD_NAMES)) {
+        const el = $(id);
+        const v = el.value.trim();
+        let err = "";
+        if (el.required && !v) err = `Enter your ${FIELD_NAMES[id].toLowerCase()}.`;
+        else if (id === "email" && v && !el.checkValidity())
+          err = "Enter an email like name@example.com.";
+        else if (id === "postal" && v && POSTAL_RE && !POSTAL_RE.test(v))
+          err = `Check your ${M.postal.toLowerCase()}, for example ${M.postalEg}.`;
+        fieldError(el, err);
+        if (err) problems.push({ id, err });
+      }
+      const box = $("err-summary");
+      if (!problems.length) {
+        box.hidden = true;
+        return true;
+      }
+      box.innerHTML =
+        `<strong>Please fix ${problems.length === 1 ? "this" : `these ${problems.length} things`} to continue:</strong><ul>` +
+        problems.map((p) => `<li><a href="#${p.id}">${esc(p.err)}</a></li>`).join("") +
+        "</ul>";
+      box.hidden = false;
+      box.focus();
+      return false;
+    }
+    function fieldError(el, err) {
+      const id = `${el.id}-err`;
+      let p = document.getElementById(id);
+      if (!err) {
+        el.removeAttribute("aria-invalid");
+        p?.remove();
+        return;
+      }
+      if (!p) {
+        p = document.createElement("p");
+        p.id = id;
+        p.className = "err";
+        el.insertAdjacentElement("afterend", p);
+      }
+      p.textContent = err;
+      el.setAttribute("aria-invalid", "true");
+      el.setAttribute("aria-errormessage", id);
+    }
+    $("err-summary").addEventListener("click", (ev) => {
+      const a = ev.target.closest("a[href^='#']");
+      if (!a) return;
+      ev.preventDefault();
+      $(a.getAttribute("href").slice(1))?.focus();
+    });
+    ["email", "name", "line1", "city", "region", "postal"].forEach((id) =>
+      $(id).addEventListener("input", () => fieldError($(id), "")),
+    );
+
+    $("to-pay").addEventListener("click", () => {
+      if (!checkDelivery()) return;
+      const val = (id) => $(id).value.trim();
+      $("recap-delivery").textContent = [
+        val("name"),
+        [val("line1"), val("line2")].filter(Boolean).join(", "),
+        [val("city"), val("region"), val("postal")].filter(Boolean).join(" "),
+        val("email"),
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      setStep(2);
+      $("h-pay").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    function provider() {
+      return document.querySelector('input[name="pay"]:checked')?.value === "STRIPE"
+        ? "STRIPE"
+        : "PAYPAL";
+    }
+    function payLabel() {
+      const total = money(lastSummary?.subtotal || 0, site.currency);
+      const est = market === "CA" ? " + tax" : "";
+      $("pay").textContent =
+        provider() === "STRIPE"
+          ? `Continue to card payment · ${total}${est}`
+          : `Continue to PayPal · ${total}${est}`;
+    }
+    document
+      .querySelectorAll('input[name="pay"]')
+      .forEach((r) => r.addEventListener("change", payLabel));
+    payLabel();
 
     $("co-form").addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const msg = $("co-msg");
-      const form = $("co-form");
-      if (!form.checkValidity()) {
-        form.reportValidity();
+      // Enter pressed in a delivery field: go to the payment step, don't start paying yet.
+      if ($("fields-pay").hidden) {
+        $("to-pay").click();
         return;
       }
-      if (!state.cartId) {
+      if (!checkDelivery()) {
+        setStep(1);
+        return;
+      }
+      if (!state.cartId || !lastSummary?.lines?.length) {
         msg.className = "msg bad";
         msg.textContent = "Your cart is empty. Add the item first.";
         return;
       }
       const val = (id) => $(id).value.trim() || undefined;
-      const provider = ev.submitter?.value === "STRIPE" ? "STRIPE" : "PAYPAL";
+      const chosen = provider();
       // One key per cart: a retry (e.g. after cancelling on PayPal) reuses the same order.
       state.checkoutKey ||= `web-${uuid()}`;
       save();
-      const payButtons = [$("pay"), $("pay-card")].filter(Boolean);
-      payButtons.forEach((b) => (b.disabled = true));
+      const payBtn = $("pay");
+      payBtn.disabled = true;
       msg.className = "msg";
-      msg.textContent =
-        provider === "STRIPE" ? "Preparing the card form…" : "Taking you to PayPal…";
+      msg.textContent = chosen === "STRIPE" ? "Preparing the card form…" : "Taking you to PayPal…";
       try {
         const { body } = await call("/v1/checkout", {
           method: "POST",
@@ -534,7 +810,7 @@
               country: M.country,
               phone: val("phone"),
             },
-            paymentProvider: provider,
+            paymentProvider: chosen,
             idempotencyKey: state.checkoutKey,
           }),
         });
@@ -544,9 +820,15 @@
           siteId: site.id,
           orderNumber: body.orderNumber,
         });
-        if (provider === "STRIPE") {
+        // The order now exists: lock the summary and show the real total (with tax in Canada).
+        locked = true;
+        renderSummary(lastSummary, body);
+        $("addons").hidden = true;
+        if (chosen === "STRIPE") {
           if (!body.clientSecret)
             throw Object.assign(new Error("NO_CLIENT_SECRET"), { code: "STRIPE_NOT_CONFIGURED" });
+          $("recap-pay").textContent = `Card · order ${body.orderNumber}`;
+          setStep(3);
           await showCardForm(body, val("email"));
           msg.textContent = "";
           return;
@@ -563,21 +845,31 @@
         }
         msg.className = "msg bad";
         msg.textContent = errText(e.code);
-        payButtons.forEach((b) => (b.disabled = false));
-        if (!paypalOpen) $("pay").disabled = true;
+        payBtn.disabled = false;
       }
     });
 
-    /** Shows Stripe's secure card form for this order, then confirms the payment. */
+    /** Shows Stripe's secure card form for this order (step 3), then confirms the payment. */
     async function showCardForm(order, email) {
       const stripe = await loadStripe(modes.stripePublishableKey);
-      const elements = stripe.elements({ clientSecret: order.clientSecret });
+      // Stripe's form in Chambelli's colors. Help: https://docs.stripe.com/elements/appearance-api
+      const elements = stripe.elements({
+        clientSecret: order.clientSecret,
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: "#534ab7",
+            colorText: "#26215c",
+            colorDanger: "#a32d2d",
+            borderRadius: "8px",
+          },
+        },
+      });
       const card = elements.create("payment", { layout: "tabs" });
       $("card-box").hidden = false;
-      $("co-form").hidden = true;
       card.mount("#card-element");
-      $("card-pay").textContent = `Pay ${money(order.total, order.currency)} now`;
-      $("card-box").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("card-pay").textContent = `Place order · ${money(order.total, order.currency)}`;
+      $("step-place").scrollIntoView({ behavior: "smooth", block: "start" });
       $("card-pay").onclick = async () => {
         const cmsg = $("card-msg");
         $("card-pay").disabled = true;
