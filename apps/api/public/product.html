@@ -45,21 +45,40 @@
         background: var(--bg);
         line-height: 1.55;
       }
+      /* Target-style colored header: solid red bar, white text (white on #cc0000 = 5.9:1). */
       header.top {
-        background: var(--card);
-        border-bottom: 1px solid var(--line);
+        background: #cc0000;
+        color: #ffffff;
         padding: 14px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       }
       header.top strong {
-        font-size: 1.15rem;
+        font-size: 1.25rem;
+        letter-spacing: 0.02em;
+      }
+      .head-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 0.9rem;
+      }
+      .head-secure {
+        white-space: nowrap;
+        color: #ffffff;
       }
       .cartlink {
         font-size: 0.95rem;
-        color: var(--muted);
+        color: #ffffff;
+        font-weight: 600;
+      }
+      @media (max-width: 520px) {
+        .head-secure {
+          display: none;
+        }
       }
       main {
         max-width: 1100px;
@@ -402,11 +421,25 @@
           min-width: 0;
         }
       }
-      footer {
+      /* Colored footer: dark bar with light text and help links (contrast 12:1+). */
+      footer.site-foot {
+        background: #333333;
+        color: #ffffff;
         text-align: center;
-        color: var(--muted);
         font-size: 0.85rem;
-        padding: 20px 16px 32px;
+        padding: 24px 16px 32px;
+        border-top: 4px solid #cc0000;
+      }
+      footer.site-foot nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 20px;
+        margin-bottom: 10px;
+      }
+      footer.site-foot a {
+        color: #ffffff;
+        text-decoration: underline;
       }
       /* Related items carousel and last-minute add-ons */
       .rel-wrap {
@@ -853,7 +886,10 @@
     <div id="chambelli-config" data-api="{{API_BASE}}" data-market="{{MARKET}}" hidden></div>
     <header class="top">
       <strong>{{STORE}}</strong>
-      <span class="cartlink" id="cart-count" aria-live="polite"></span>
+      <div class="head-right">
+        <span class="head-secure">&#128274; Secure checkout</span>
+        <span class="cartlink" id="cart-count" aria-live="polite"></span>
+      </div>
     </header>
 
     <main>
@@ -905,7 +941,18 @@
       </section>
     </main>
 
-    <footer>{{STORE}} · a GetServices.ai store</footer>
+    <footer class="site-foot">
+      <nav aria-label="Help">
+        <a href="#help-title">Help &amp; questions</a>
+        <a href="mailto:agents@getservices.ai?subject=Chambelli%20order%20help">Contact us</a>
+        <a href="mailto:agents@getservices.ai?subject=Chambelli%20return">Returns</a>
+        <a href="https://support.stripe.com/" target="_blank" rel="noopener">Stripe Support</a>
+        <a href="https://www.paypal.com/us/cshelp/personal" target="_blank" rel="noopener"
+          >PayPal Help</a
+        >
+      </nav>
+      <div>{{STORE}} · a GetServices.ai store</div>
+    </footer>
     <script src="{{API_BASE}}/product.js" defer></script>
   </body>
 </html>
