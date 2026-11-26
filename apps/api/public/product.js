@@ -105,9 +105,10 @@
       "Please use the same email as your first try, or add the item to your cart again.",
     PAYMENT_NOT_COMPLETED: "The payment wasn't completed. You have not been charged.",
   };
-  const US_STATES = "AL Alabama|AK Alaska|AZ Arizona|AR Arkansas|CA California|CO Colorado|CT Connecticut|DE Delaware|DC District of Columbia|FL Florida|GA Georgia|HI Hawaii|ID Idaho|IL Illinois|IN Indiana|IA Iowa|KS Kansas|KY Kentucky|LA Louisiana|ME Maine|MD Maryland|MA Massachusetts|MI Michigan|MN Minnesota|MS Mississippi|MO Missouri|MT Montana|NE Nebraska|NV Nevada|NH New Hampshire|NJ New Jersey|NM New Mexico|NY New York|NC North Carolina|ND North Dakota|OH Ohio|OK Oklahoma|OR Oregon|PA Pennsylvania|RI Rhode Island|SC South Carolina|SD South Dakota|TN Tennessee|TX Texas|UT Utah|VT Vermont|VA Virginia|WA Washington|WV West Virginia|WI Wisconsin|WY Wyoming"
-    .split("|")
-    .map((s) => [s.slice(0, 2), s.slice(3)]);
+  const US_STATES =
+    "AL Alabama|AK Alaska|AZ Arizona|AR Arkansas|CA California|CO Colorado|CT Connecticut|DE Delaware|DC District of Columbia|FL Florida|GA Georgia|HI Hawaii|ID Idaho|IL Illinois|IN Indiana|IA Iowa|KS Kansas|KY Kentucky|LA Louisiana|ME Maine|MD Maryland|MA Massachusetts|MI Michigan|MN Minnesota|MS Mississippi|MO Missouri|MT Montana|NE Nebraska|NV Nevada|NH New Hampshire|NJ New Jersey|NM New Mexico|NY New York|NC North Carolina|ND North Dakota|OH Ohio|OK Oklahoma|OR Oregon|PA Pennsylvania|RI Rhode Island|SC South Carolina|SD South Dakota|TN Tennessee|TX Texas|UT Utah|VT Vermont|VA Virginia|WA Washington|WV West Virginia|WI Wisconsin|WY Wyoming"
+      .split("|")
+      .map((s) => [s.slice(0, 2), s.slice(3)]);
   const POSTAL_PATTERN = { US: "\\d{5}(-\\d{4})?" }[market] || "";
   const errText = (code) =>
     ERRORS[code] || "Something went wrong. Please try again, or email agents@getservices.ai.";
@@ -672,11 +673,13 @@
       $("edit-pay").hidden = n !== 3 || locked;
     }
 
-    $("go").addEventListener("click", () => {
+    const openCheckout = () => {
       $("checkout").hidden = false;
       setStep(1);
       $("checkout").scrollIntoView({ behavior: "smooth", block: "start" });
-      const first = ["email", "name", "line1", "city", "region", "postal"].find((id) => !$(id).value);
+      const first = ["email", "name", "line1", "city", "region", "postal"].find(
+        (id) => !$(id).value,
+      );
       $(first || "pay").focus({ preventScroll: true });
     };
     $("go").addEventListener("click", openCheckout);

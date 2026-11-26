@@ -21,7 +21,10 @@
   const title = s.dataset.title || "Recommended Products";
   const urlTemplate = s.dataset.productUrl || "";
   // Optional card widths in px (data-card-width, data-card-width-mobile). Sites that leave them out keep the defaults.
-  const px = (v, d) => { const n = parseInt(v, 10); return n >= 100 && n <= 400 ? n : d; };
+  const px = (v, d) => {
+    const n = parseInt(v, 10);
+    return n >= 100 && n <= 400 ? n : d;
+  };
   const cardW = px(s.dataset.cardWidth, 220);
   const cardWm = px(s.dataset.cardWidthMobile, 160);
   if (!site || !api) return;
