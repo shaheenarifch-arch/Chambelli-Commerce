@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { apiGet } from "../../lib/api";
-import { approve, setActive } from "./actions";
+import { approve, decidePrices, setActive } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +21,7 @@ type Site = {
   live: number;
   waiting: number;
   removed: number;
+  priceChanges?: number;
   approving: boolean;
 };
 type Row = {
@@ -32,7 +33,14 @@ type Row = {
     imageUrl: string | null;
     status: string;
     category: string;
-    variants: Array<{ price: string; quantity: number; currency: string }>;
+    variants: Array<{
+      id: string;
+      price: string;
+      quantity: number;
+      currency: string;
+      pendingPrice: string | null;
+      pendingPriceAt: string | null;
+    }>;
     supplierProducts: Array<{ supplierPrice: string }>;
   };
 };
@@ -69,6 +77,12 @@ export default async function CarouselsPage({
   const waiting = rows.filter((r) => r.active && !isLive(r));
   const live = rows.filter(isLive);
   const removed = rows.filter((r) => !r.active);
+  // Price hold: new CJ prices on live UK/Germany products wait here for your OK.
+  const priceChanges = live.flatMap((r) =>
+    r.product.variants
+      .filter((v) => v.currency === selected?.currency && v.pendingPrice !== null)
+      .map((v) => ({ row: r, v })),
+  );
   const error = sites.error ?? detail.error;
   const embed = selected
     ? `<script async src="${WIDGET_BASE}/widget.js" data-api="${WIDGET_BASE}" data-site="${selected.slug}" data-placement="article-footer" data-title="Shop Chambelli picks"></script>`
@@ -115,6 +129,9 @@ export default async function CarouselsPage({
                 ) : (
                   <span className="pill tone-good">ready</span>
                 )}
+                {s.priceChanges ? (
+                  <span className="pill tone-info">{s.priceChanges} new prices</span>
+                ) : null}
               </span>
             </Link>
           );
@@ -195,6 +212,67 @@ export default async function CarouselsPage({
               <pre className="code">{embed}</pre>
             </div>
           </section>
+
+          {uk || de ? (
+            <section className="card">
+              <form>
+                <input type="hidden" name="site" value={selected.slug} />
+                <div className="toolbar">
+                  <h2>New prices waiting for your OK ({priceChanges.length})</h2>
+                  {priceChanges.length ? (
+                    <>
+                      <button
+                        formAction={decidePrices}
+                        name="accept"
+                        value="true"
+                        className="approve small"
+                      >
+                        Accept ticked prices
+                      </button>
+                      <button
+                        formAction={decidePrices}
+                        name="accept"
+                        value="false"
+                        className="secondary small"
+                      >
+                        Keep current prices
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+                <p className="help">
+                  When CJ&apos;s cost changes, the 6-hourly sync works out a new price but does not
+                  change what shoppers see. It waits here until you accept it. If you keep the
+                  current price, that same new price is not offered again. Sold-out products still
+                  come off the carousel by themselves.
+                </p>
+                {priceChanges.length ? (
+                  <div className="pgrid">
+                    {priceChanges.map(({ row, v }) => (
+                      <label key={v.id} className="pcard">
+                        <input type="checkbox" name="variantId" value={v.id} />
+                        {row.product.imageUrl ? (
+                          <img src={row.product.imageUrl} alt="" loading="lazy" />
+                        ) : (
+                          <span className="noimg">No photo</span>
+                        )}
+                        <span className="ptitle">{row.product.title}</span>
+                        <span className="stat-note">
+                          Now {money(v.price, v.currency)} · new{" "}
+                          {money(v.pendingPrice!, v.currency)}
+                          {v.pendingPriceAt
+                            ? ` · since ${new Date(v.pendingPriceAt).toLocaleDateString("en-US")}`
+                            : ""}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="empty">No price changes waiting.</p>
+                )}
+              </form>
+            </section>
+          ) : null}
 
           {[
             { title: "Waiting for approval", list: waiting, kind: "waiting" },

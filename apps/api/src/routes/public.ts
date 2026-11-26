@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { db, EventType } from "@chambelli/database";
 import { FeedService } from "@chambelli/feeds";
+import { cleanSupplierNotes } from "@chambelli/cj";
 import { AnalyticsService } from "@chambelli/analytics";
 import { config } from "../config.js";
 
@@ -66,11 +67,13 @@ function securityHeaders(base: string) {
   const self = origin ? `'self' ${origin}` : "'self'";
   return [
     "default-src 'self'",
-    `script-src ${self}`,
+    // Stripe.js powers the card form (https://docs.stripe.com/security/guide#content-security-policy).
+    `script-src ${self} https://js.stripe.com`,
     "style-src 'self' 'unsafe-inline'",
     // Product photos come from CJ's image hosts.
     "img-src 'self' https: data:",
-    `connect-src ${self}`,
+    `connect-src ${self} https://api.stripe.com`,
+    "frame-src https://js.stripe.com https://hooks.stripe.com",
     "frame-ancestors 'self'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -116,7 +119,11 @@ export async function publicRoutes(app: FastifyInstance) {
     const out = await feeds.get(p.site, p.placement, q.limit);
     if (!out) return reply.code(404).send({ error: "SITE_NOT_FOUND" });
     reply.header("Cache-Control", "public, max-age=60, s-maxage=300");
-    return out;
+    // Shoppers never see CJ suppliers' shipping notes in titles (e.g. "TikTok, temu pick-up").
+    return {
+      ...out,
+      products: out.products.map((p) => ({ ...p, title: cleanSupplierNotes(p.title) })),
+    };
   });
 
   app.post(
@@ -209,7 +216,7 @@ export async function publicRoutes(app: FastifyInstance) {
       product: {
         id: product.id,
         slug: product.slug,
-        title: product.title,
+        title: cleanSupplierNotes(product.title),
         description: product.description,
         imageUrl: product.imageUrl,
         category: product.category,
@@ -263,9 +270,10 @@ export async function publicRoutes(app: FastifyInstance) {
           status: 404,
         });
       const desc = (found.product.description ?? "").replace(/\s+/g, " ").trim().slice(0, 160);
+      const title = cleanSupplierNotes(found.product.title);
       return sendPage(req, reply, {
-        title: `${found.product.title} · ${m.store}`,
-        description: desc || `${found.product.title}, delivered by ${m.store}.`,
+        title: `${title} · ${m.store}`,
+        description: desc || `${title}, delivered by ${m.store}.`,
         image: found.product.imageUrl,
       });
     });

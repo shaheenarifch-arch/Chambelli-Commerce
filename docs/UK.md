@@ -30,7 +30,10 @@ In `config/cj-site-map.json`, give a site `"market": "UK"`. The next sync then:
 - sets the site to **market UK, currency GBP**, so its carousel shows **£** prices;
 - links it only products from the UK sync (tag `uk`), filtered by its `titleMatch` words
   (UK sites need `titleMatch`, because UK products have no CJ category);
-- keeps each UK price in step with CJ's UK warehouse stock every 6 hours.
+- checks CJ's UK warehouse stock every 6 hours; sold-out products come off the carousel by themselves;
+- never changes a live price by itself. When CJ's cost moves a price, the new price waits under
+  **New prices waiting for your OK** on the hub's Carousels page until you accept it or keep the
+  current one.
 
 **Approving** a UK site in the hub (Carousels page) prices each product in GBP from its CJ cost
 (30% margin + UK shipping + VAT if set) and checks CJ's UK stock. Products with no UK stock stay
@@ -57,11 +60,10 @@ Card payments need `STRIPE_SECRET_KEY` (and the webhook) set on the server; PayP
 
 | Site                                         | Slug              | Sells                                                                         |
 | -------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| [jewllery.store](https://jewllery.store)     | `jewllery`        | Jewellery: necklaces, earrings, bracelets, rings, watches                     |
 | [buybeststores.uk](https://buybeststores.uk) | `buybeststoresuk` | Electronics and fitness: earbuds, speakers, chargers, smart watches, home gym |
 | [ezpass.uk](https://ezpass.uk)               | `ezpassuk`        | UK travel gear: luggage, packing cubes, adapters, power banks                 |
 
-buybeststore.com moved to the [Germany chapter](DE.md) (EUR, German warehouse).
+buybeststore.com and jewllery.store moved to the [Germany chapter](DE.md) (EUR, German warehouse).
 
 Products with US, EU or AU plugs are kept off the UK sites. Each site has the carousel at the top of
 its homepage; it hides itself until you approve products.

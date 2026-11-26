@@ -1,7 +1,7 @@
 import { db, Prisma, SupplierType } from "@chambelli/database";
 import { computePrice } from "./math.js";
 
-export { computePrice };
+export { computePrice, ending99, holdPriceChange } from "./math.js";
 export * from "./canada.js";
 export * from "./uk.js";
 export * from "./de.js";

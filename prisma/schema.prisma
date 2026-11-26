@@ -89,6 +89,11 @@ model ProductVariant {
   shippingCost   Decimal             @default(0) @db.Decimal(12, 2)
   price          Decimal             @db.Decimal(12, 2)
   compareAtPrice Decimal?            @db.Decimal(12, 2)
+  /// New price from a CJ sync, waiting for your OK on the hub (UK and Germany sites).
+  pendingPrice   Decimal?            @db.Decimal(12, 2)
+  pendingPriceAt DateTime?
+  /// A pending price you turned down; not offered again unless CJ's cost moves it.
+  declinedPrice  Decimal?            @db.Decimal(12, 2)
   currency       String              @default("USD")
   quantity       Int                 @default(0)
   safetyBuffer   Int                 @default(0)

@@ -1,6 +1,6 @@
 import { db, SupplierType, ProductStatus, Prisma } from "@chambelli/database";
 import { CJConnector, parseCJPrice, type CJItem } from "@chambelli/cj";
-import { ukPrice, UK_MIN_MARGIN_PERCENT } from "@chambelli/pricing";
+import { ukPrice, UK_MIN_MARGIN_PERCENT, ending99, holdPriceChange } from "@chambelli/pricing";
 import { InventoryService } from "@chambelli/inventory";
 
 /**
@@ -84,17 +84,43 @@ export async function syncUk(cj: CJConnector) {
       },
       update: { supplierPrice: priceUsd, supplierStock: stock, lastSyncAt: new Date() },
     });
+    const price = ending99(priced.price);
     const values = {
       cost: priced.cost,
       shippingCost: priced.shipping,
-      price: priced.price,
       currency: "GBP",
       warehouse: COUNTRY,
     };
+    // Price hold: a sync never changes a price shoppers already see. A new price waits on the
+    // hub's Carousels page until you accept it.
+    const existing = await db.productVariant.findUnique({ where: { sku: `${sku}-UK` } });
+    const hold = existing
+      ? holdPriceChange(
+          Number(existing.price),
+          price,
+          existing.declinedPrice === null ? null : Number(existing.declinedPrice),
+        )
+      : null;
     const variant = await db.productVariant.upsert({
       where: { sku: `${sku}-UK` },
-      create: { ...values, productId: product.id, sku: `${sku}-UK`, name: "Ships from the UK" },
-      update: values,
+      create: {
+        ...values,
+        price,
+        productId: product.id,
+        sku: `${sku}-UK`,
+        name: "Ships from the UK",
+      },
+      update: {
+        ...values,
+        pendingPrice: hold?.pendingPrice ?? null,
+        pendingPriceAt:
+          hold?.pendingPrice == null
+            ? null
+            : existing?.pendingPrice != null &&
+                Math.abs(Number(existing.pendingPrice) - hold.pendingPrice) < 0.005
+              ? existing.pendingPriceAt
+              : new Date(),
+      },
     });
     // Applies the safety buffer and records a snapshot; zero stock hides it from the storefront.
     await inventory.update(variant.id, stock, "cj-gb");

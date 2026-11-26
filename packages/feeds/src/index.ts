@@ -3,6 +3,13 @@ import { db, ProductStatus } from "@chambelli/database";
 
 const MAX_PRODUCTS = 50;
 const CACHE_SECONDS = 600;
+/**
+ * Highest price a carousel shows, in the site's own currency (default 500). CJ lists some
+ * products at a placeholder cost near $999, which priced them over $1,400 on the sites.
+ * Products above this stay on the hub but never show to shoppers. Help: docs/CJ-SITE-MAP.md
+ */
+const maxPriceEnv = Number(process.env.CAROUSEL_MAX_PRICE);
+export const CAROUSEL_MAX_PRICE = maxPriceEnv > 0 ? maxPriceEnv : 500;
 
 const redis = process.env.REDIS_URL
   ? new Redis(process.env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 })
@@ -74,14 +81,26 @@ export class FeedService {
         product: {
           status: ProductStatus.ACTIVE,
           // Only variants priced in the site's currency (CAD on the Canada site, USD on US sites).
-          variants: { some: { active: true, quantity: { gt: 0 }, currency: site.currency } },
+          variants: {
+            some: {
+              active: true,
+              quantity: { gt: 0 },
+              currency: site.currency,
+              price: { lte: CAROUSEL_MAX_PRICE },
+            },
+          },
         },
       },
       include: {
         product: {
           include: {
             variants: {
-              where: { active: true, quantity: { gt: 0 }, currency: site.currency },
+              where: {
+                active: true,
+                quantity: { gt: 0 },
+                currency: site.currency,
+                price: { lte: CAROUSEL_MAX_PRICE },
+              },
               orderBy: { price: "asc" },
               take: 1,
             },

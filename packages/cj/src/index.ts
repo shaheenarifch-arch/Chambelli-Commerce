@@ -133,6 +133,33 @@ export function hasWord(title: string, word: string): boolean {
   return new RegExp(`(?<![a-z0-9])${body}(?![a-z0-9])`).test(title.toLowerCase());
 }
 
+// Words that only show up in CJ suppliers' shipping notes, never in a real product name.
+const SUPPLIER_NOTE =
+  /iktok|\btemu\b|\btmeu\b|self[\s-]*(?:pick|uockup)|logio|logiaq|pick-up service|walmart|amazon shipping|unable ship|usps|designated logistics|alternate code/i;
+const OPEN = "([（【";
+const BRACKETED = /\s*[([（【][^()[\]（）【】]*[)\]）】]/g;
+const UNCLOSED_AT_END = /\s*[([（【][^()[\]（）【】]*$/;
+
+/**
+ * Strips CJ suppliers' shipping notes from a product title before shoppers see it, e.g.
+ * "Wind Chime(TikTok, temu pick-up service)" -> "Wind Chime", or a "[Unable ship on weekends,
+ * TK/TEMU only for pi" cut off at the end. Real bracketed text like "(2 Pack)" is kept.
+ * Help: docs/CJ-SITE-MAP.md
+ */
+export function cleanSupplierNotes(title: string): string {
+  let t = title.replace(BRACKETED, (m) => (SUPPLIER_NOTE.test(m) ? " " : m));
+  const tail = t.match(UNCLOSED_AT_END);
+  if (tail && SUPPLIER_NOTE.test(tail[0])) t = t.slice(0, tail.index);
+  t = t
+    .replace(/^\s*no provide self pick-up\.?\s*/i, "")
+    .replace(/\s*\b(?:TikTok|temu)[, ]+(?:temu|TikTok)? ?pick-up service\b/gi, " ")
+    .replace(/\s*[A-Za-z]*ikTok,\s*[A-Za-z]*ikTok,[^,]*?(?:Logio\w*|$)/gi, " ");
+  t = t.replace(/\s+/g, " ").trim();
+  // A note cut off inside an unclosed bracket can leave a stray bracket or comma behind.
+  while (t && (OPEN.includes(t.at(-1)!) || ",;-–".includes(t.at(-1)!))) t = t.slice(0, -1).trim();
+  return t || title.trim();
+}
+
 /** True when a product title passes a site's titleMatch / titleExclude rules (whole words). */
 export function titleFitsSite(
   title: string,

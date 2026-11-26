@@ -47,3 +47,22 @@ export async function setActive(form: FormData) {
   if (r.error) back(form, r.error, false);
   back(form, `${r.data!.updated} ${active ? "put back on" : "removed from"} the carousel.`, true);
 }
+
+/** Price hold (UK and Germany sites): accept or turn down new CJ prices on the ticked products. */
+export async function decidePrices(form: FormData) {
+  const ids = form.getAll("variantId").map(String).filter(Boolean);
+  const accept = form.get("accept") === "true";
+  if (!ids.length) back(form, "Tick at least one price change first.", false);
+  const r = await apiPost<{ updated: number }>(`/v1/admin/sites/${form.get("site")}/prices`, {
+    variantIds: ids,
+    accept,
+  });
+  if (r.error) back(form, r.error, false);
+  back(
+    form,
+    accept
+      ? `${r.data!.updated} new prices are now live.`
+      : `${r.data!.updated} kept at the current price. The same new price won't be offered again.`,
+    true,
+  );
+}
