@@ -278,6 +278,7 @@
     showMode(modes);
     const paypalOpen = !!modes && modes.paypal !== "off";
     const cardOpen = !!modes && modes.stripe !== "off" && !!modes.stripePublishableKey;
+    const checkoutOpen = paypalOpen || cardOpen;
     const { site, product, variants } = data;
     const buyable = variants.filter((v) => v.inStock);
     let state = store.get(cartKey(site.id)) || {};
@@ -701,11 +702,6 @@
       btn.disabled = false;
     });
 
-    $("more-addr").addEventListener("click", () => {
-      $("more-addr").hidden = true;
-      $("line2").hidden = false;
-      $("line2").focus();
-    });
     $("edit-delivery").addEventListener("click", () => {
       setStep(1);
       $("email").focus();
