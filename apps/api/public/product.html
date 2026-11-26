@@ -246,6 +246,162 @@
       [hidden] {
         display: none !important;
       }
+      button.buy {
+        padding: 13px 26px;
+      }
+      .perks {
+        list-style: none;
+        padding: 0;
+        margin: 14px 0 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .perks li::before {
+        content: "\2713  ";
+        color: var(--good);
+        font-weight: 700;
+      }
+      .closed-note {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        font-size: 0.92rem;
+      }
+      .steps {
+        display: flex;
+        gap: 6px;
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 14px;
+        font-size: 0.82rem;
+        counter-reset: s;
+        flex-wrap: wrap;
+      }
+      .steps li {
+        counter-increment: s;
+        color: var(--muted);
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #eef1f6;
+      }
+      .steps li::before {
+        content: counter(s) ". ";
+      }
+      .steps li.on {
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+      }
+      .summary {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        background: #fafbfe;
+      }
+      .sum-item {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .sum-item img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex: none;
+      }
+      .summary dl {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 12px;
+        margin: 10px 0 4px;
+        font-size: 0.95rem;
+      }
+      .summary dd {
+        margin: 0;
+        text-align: right;
+      }
+      .summary .tot {
+        font-weight: 700;
+        border-top: 1px solid var(--line);
+        padding-top: 6px;
+      }
+      .span2 {
+        grid-column: 1 / -1;
+      }
+      .grid2.tight {
+        gap: 0 10px;
+      }
+      .linkbtn {
+        background: none;
+        color: var(--accent);
+        padding: 6px 0 0;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      #line2 {
+        margin-top: 8px;
+      }
+      label.check {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 500;
+        font-size: 0.92rem;
+      }
+      label.check input {
+        width: auto;
+      }
+      .paybar {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 12px 0;
+        background: var(--card);
+      }
+      .paytotal span {
+        color: var(--muted);
+        margin-right: 8px;
+      }
+      .paytotal strong {
+        font-size: 1.3rem;
+      }
+      button.paypal {
+        background: #ffc439;
+        color: #111;
+        min-width: 240px;
+        padding: 14px 22px;
+        font-size: 1.05rem;
+      }
+      button.paypal:hover:not([disabled]) {
+        background: #f2b42d;
+      }
+      .secure {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+      @media (max-width: 760px) {
+        .paybar {
+          position: sticky;
+          bottom: 0;
+          z-index: 5;
+          border-top: 1px solid var(--line);
+          margin: 16px -20px 0;
+          padding: 12px 20px;
+          box-shadow: 0 -6px 16px rgba(31, 36, 48, 0.08);
+        }
+        button.paypal {
+          flex: 1;
+          min-width: 0;
+        }
+      }
       footer {
         text-align: center;
         color: var(--muted);
