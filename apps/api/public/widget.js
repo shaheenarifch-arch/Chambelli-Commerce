@@ -20,6 +20,10 @@
   const placement = s.dataset.placement || "article-footer";
   const title = s.dataset.title || "Recommended Products";
   const urlTemplate = s.dataset.productUrl || "";
+  // Optional card widths in px (data-card-width, data-card-width-mobile). Sites that leave them out keep the defaults.
+  const px = (v, d) => { const n = parseInt(v, 10); return n >= 100 && n <= 400 ? n : d; };
+  const cardW = px(s.dataset.cardWidth, 220);
+  const cardWm = px(s.dataset.cardWidthMobile, 160);
   if (!site || !api) return;
 
   const esc = (v) =>
@@ -102,7 +106,7 @@
     .prev{left:-14px}.next{right:-14px}
     .count{font-size:13px;color:#6b7280;white-space:nowrap}
     .track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:2px 2px 10px;scrollbar-width:thin}
-    .card{flex:0 0 220px;scroll-snap-align:start;background:#fff;border:1px solid #eef0f3;border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
+    .card{flex:0 0 ${cardW}px;scroll-snap-align:start;background:#fff;border:1px solid #eef0f3;border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
     a.card:hover{box-shadow:0 10px 24px rgba(17,24,39,.08);transform:translateY(-2px)}
     .img{position:relative;aspect-ratio:1;background:#f3f4f6}
     .img img{width:100%;height:100%;object-fit:cover;display:block}
@@ -111,7 +115,7 @@
     h3{font-size:14px;font-weight:600;margin:0;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .price{font-size:15px;font-weight:700}
     .was{color:#9ca3af;text-decoration:line-through;font-weight:500;font-size:13px;margin-left:6px}
-    @media (max-width:640px){.card{flex-basis:160px}.arrow{width:36px;height:36px;font-size:22px;top:calc(50% - 40px)}.prev{left:4px}.next{right:4px}}
+    @media (max-width:640px){.card{flex-basis:${cardWm}px}.arrow{width:36px;height:36px;font-size:22px;top:calc(50% - 40px)}.prev{left:4px}.next{right:4px}}
     @media (prefers-color-scheme:dark){:host{color:#f3f4f6}.card{background:#111827;border-color:#1f2937}.arrow{background:rgba(17,24,39,.96);border-color:#374151;color:#f3f4f6}.arrow:hover{background:#1f2937}.img{background:#1f2937}}
   `;
 
