@@ -180,6 +180,14 @@ describe("website carousel site map", async () => {
     expect(titleFitsSite("Weekly Pill Organizer 7 Day", site)).toBe(true);
     expect(titleFitsSite("Disposable Syringe Needle Set", site)).toBe(false);
     expect(titleFitsSite("Makeup Brush Set", site)).toBe(false);
+    // "thermometer" alone pulled in grills, distillers and weather stations (Nov 2026)
+    expect(
+      titleFitsSite("Digital LCD Thermometer Medical Body Temperature Mouth Underarm", site),
+    ).toBe(true);
+    expect(titleFitsSite("Charcoal BBQ Smoker Grill with Thermometer", site)).toBe(false);
+    expect(titleFitsSite("Alcohol Still, 30L Distiller with Thermometer", site)).toBe(false);
+    expect(titleFitsSite("5-in-1 Wireless Weather Station Outdoor Thermometer", site)).toBe(false);
+    expect(titleFitsSite("Infrared Thermometer Gun (Not For Human)", site)).toBe(false);
   });
 
   it("sells the 2 UK sites from UK stock with title rules and UK plugs only", () => {
