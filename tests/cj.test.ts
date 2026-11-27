@@ -188,6 +188,14 @@ describe("website carousel site map", async () => {
     expect(titleFitsSite("Alcohol Still, 30L Distiller with Thermometer", site)).toBe(false);
     expect(titleFitsSite("5-in-1 Wireless Weather Station Outdoor Thermometer", site)).toBe(false);
     expect(titleFitsSite("Infrared Thermometer Gun (Not For Human)", site)).toBe(false);
+    // "cane" and "compression" pulled in candy canes, rattan chairs, speaker drivers, sofas (Nov 2026)
+    expect(titleFitsSite("8' Christmas Inflatable Santa Claus with Candy Cane", site)).toBe(false);
+    expect(titleFitsSite("Rattan Dining Chairs with Cane Backrest", site)).toBe(false);
+    expect(titleFitsSite("5Core Compression Horn Driver Tweeter 220W", site)).toBe(false);
+    expect(titleFitsSite("Floor Couch, Compression Sofa Bed", site)).toBe(false);
+    expect(titleFitsSite("Folding Seat Cane, 5-Level Height Adjust", site)).toBe(true);
+    expect(titleFitsSite("Foldable Rollator Walker with Cane Holder", site)).toBe(true);
+    expect(titleFitsSite("Graduated Compression Socks 20-30mmHg", site)).toBe(true);
   });
 
   it("sells the 2 UK sites from UK stock with title rules and UK plugs only", () => {
