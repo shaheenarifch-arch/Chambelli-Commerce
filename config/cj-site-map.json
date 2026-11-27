@@ -302,7 +302,19 @@
       "name": "Outdoor Sports Fun",
       "domain": "outdoorsports.fun",
       "cjCategories": ["Sports & Outdoors"],
-      "terms": ["camping lantern", "hiking backpack", "fishing gear", "yoga mat", "water bottle"],
+      "terms": [
+        "camping lantern",
+        "hiking backpack",
+        "fishing gear",
+        "yoga mat",
+        "water bottle",
+        "charcoal grill",
+        "gas grill",
+        "bbq smoker",
+        "pizza oven",
+        "camping stove",
+        "weather station"
+      ],
       "titleExclude": ["kitchen", "go kart", "kart"]
     },
     {
