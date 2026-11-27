@@ -107,7 +107,25 @@
         "curling iron",
         "hair bonnet",
         "hair scrunchie",
-        "hair care oil"
+        "hair care oil",
+        "lace front wig",
+        "wig cap",
+        "braiding hair",
+        "clip in bangs",
+        "hair topper",
+        "ponytail extension",
+        "hair rollers",
+        "heatless curlers",
+        "detangling brush",
+        "hot air brush",
+        "hair diffuser",
+        "hair crimper",
+        "hair towel wrap",
+        "hair claw clip",
+        "hair ties",
+        "hair clipper",
+        "edge brush",
+        "satin bonnet"
       ],
       "titleMatch": [
         "wig",
@@ -126,7 +144,15 @@
         "headband",
         "bonnet",
         "comb",
-        "brush"
+        "brush",
+        "roller",
+        "curler",
+        "crimper",
+        "diffuser",
+        "topper",
+        "bangs",
+        "clipper",
+        "hair tie"
       ],
       "titleExclude": [
         "gummies",
@@ -135,7 +161,13 @@
         "tablet",
         "shilajit",
         "eyelash",
-        "eyebrow"
+        "eyebrow",
+        "face roller",
+        "jade",
+        "nail",
+        "paint roller",
+        "foam roller",
+        "lint roller"
       ]
     },
     {
@@ -158,7 +190,17 @@
         "eyeglass chain",
         "lens cleaning",
         "smart glasses",
-        "sports sunglasses"
+        "sports sunglasses",
+        "cat eye sunglasses",
+        "aviator sunglasses",
+        "round sunglasses",
+        "oversized sunglasses",
+        "blue light blocking glasses",
+        "computer glasses",
+        "kids sunglasses",
+        "clip on sunglasses",
+        "sunglasses women",
+        "sunglasses men"
       ],
       "titleMatch": [
         "sunglasses",
@@ -189,7 +231,12 @@
         "cup",
         "tumbler",
         "shot glass",
-        "glass jar"
+        "glass jar",
+        "dog",
+        "pet",
+        "doggles",
+        "car seat",
+        "gap filler"
       ]
     },
     {
@@ -403,7 +450,21 @@
         "eye massager",
         "neck massager",
         "acupressure mat",
-        "pill crusher"
+        "pill crusher",
+        "back massager",
+        "knee massager",
+        "calf massager",
+        "hand massager",
+        "leg massager",
+        "foot spa massager",
+        "cervical traction",
+        "hot water bottle",
+        "coccyx seat cushion",
+        "sciatica pillow",
+        "electric heating pad",
+        "arthritis gloves",
+        "finger splint",
+        "magnifying glass"
       ],
       "titleMatch": [
         "first aid",
@@ -456,7 +517,14 @@
         "acupressure",
         "pill crusher",
         "lumbar support",
-        "shiatsu"
+        "shiatsu",
+        "traction",
+        "hot water bottle",
+        "coccyx",
+        "splint",
+        "arthritis",
+        "magnifier",
+        "magnifying"
       ],
       "titleExclude": [
         "prescription",
@@ -1006,7 +1074,22 @@
         "car jump starter",
         "car seat organizer",
         "blind spot mirror",
-        "car led lights"
+        "car led lights",
+        "car seat cover",
+        "steering wheel cover",
+        "car floor mats",
+        "car sun shade",
+        "windshield sun shade",
+        "car trash can",
+        "car seat cushion",
+        "obd2 scanner",
+        "car wash kit",
+        "head up display car",
+        "tire pressure gauge",
+        "car power inverter",
+        "car refrigerator",
+        "car cover",
+        "car organizer"
       ],
       "titleMatch": [
         "car",
@@ -1026,7 +1109,12 @@
         "trunk",
         "parking",
         "automotive",
-        "automobile"
+        "automobile",
+        "sun shade",
+        "floor mat",
+        "seat cover",
+        "inverter",
+        "tire pressure"
       ],
       "titleExclude": [
         "toy car",
@@ -1356,7 +1444,20 @@
         "tawa pan",
         "rolling pin",
         "bangles",
-        "henna"
+        "henna",
+        "masala dabba",
+        "masala chai tea",
+        "brass diya",
+        "pooja thali",
+        "incense holder",
+        "stainless steel thali",
+        "idli maker",
+        "chapati maker",
+        "roti maker",
+        "copper water bottle",
+        "jhumka earrings",
+        "kundan necklace",
+        "mehndi cone"
       ],
       "titleMatch": [
         "spice box",
@@ -1369,7 +1470,6 @@
         "tea set",
         "teapot",
         "tea cup",
-        "chai",
         "rice storage",
         "rice dispenser",
         "flour container",
@@ -1377,7 +1477,6 @@
         "wok",
         "kadai",
         "tawa",
-        "griddle",
         "rolling pin",
         "chapati",
         "roti",
@@ -1386,9 +1485,36 @@
         "bangle",
         "henna",
         "mehndi",
-        "bindi"
+        "bindi",
+        "chai tea",
+        "masala chai",
+        "diya",
+        "pooja",
+        "puja",
+        "thali",
+        "incense",
+        "idli",
+        "jhumka",
+        "kundan",
+        "dabba",
+        "copper water bottle"
       ],
-      "titleExclude": ["toy", "kids", "baby", "sexy", "supplement", "gummies"]
+      "titleExclude": [
+        "toy",
+        "kids",
+        "baby",
+        "sexy",
+        "supplement",
+        "gummies",
+        "chair",
+        "stool",
+        "bar",
+        "grill",
+        "bbq",
+        "sealing machine",
+        "cabinet",
+        "kitchen island"
+      ]
     },
     {
       "slug": "jewllery",
