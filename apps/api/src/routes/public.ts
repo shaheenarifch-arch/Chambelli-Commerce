@@ -6,6 +6,7 @@ import { FeedService } from "@chambelli/feeds";
 import { cleanSupplierNotes } from "@chambelli/cj";
 import { AnalyticsService } from "@chambelli/analytics";
 import { config } from "../config.js";
+import { CATALOG_MARKETS, getCatalog, type CatalogMarketKey } from "../catalog.js";
 
 const widgetPath = new URL("../../public/widget.js", import.meta.url);
 let widgetSource: string | null = null;
@@ -124,6 +125,19 @@ export async function publicRoutes(app: FastifyInstance) {
       ...out,
       products: out.products.map((p) => ({ ...p, title: cleanSupplierNotes(p.title) })),
     };
+  });
+
+  /**
+   * chambelli.com catalog: every live carousel product for one market (us, uk, eu, ca), with
+   * its department. Help: docs/CHAMBELLI-COM.md
+   */
+  app.get("/v1/catalog/:market", async (req, reply) => {
+    const { market } = z
+      .object({ market: z.enum(Object.keys(CATALOG_MARKETS) as [CatalogMarketKey]) })
+      .parse(req.params);
+    const out = await getCatalog(market);
+    reply.header("Cache-Control", "public, max-age=300, s-maxage=600");
+    return out;
   });
 
   app.post(
