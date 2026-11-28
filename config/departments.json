@@ -1,0 +1,90 @@
+{
+  "$help": "chambelli.com departments. A product goes to the department of the carousel site it is live on (sites). Products only on mixed sites (coupondepots, bostondaily) or on no listed site go by their CJ category (categories). Edit, merge and redeploy. Guide: docs/CHAMBELLI-COM.md",
+  "fallback": "home",
+  "departments": [
+    {
+      "slug": "fashion",
+      "name": "Fashion: Women, Men & Kids",
+      "sites": ["shopdress", "womenstyle", "curated4her", "neededmen"],
+      "categories": ["Women's Clothing", "Men's Clothing", "Bags & Shoes", "Toys, Kids & Babies"]
+    },
+    {
+      "slug": "hair-beauty",
+      "name": "Hair & Beauty",
+      "sites": ["hairstyle", "glowsculpt"],
+      "categories": ["Health, Beauty & Hair"]
+    },
+    {
+      "slug": "jewelry-eyewear",
+      "name": "Jewelry, Watches & Eyewear",
+      "sites": ["jewllery", "lensloop"],
+      "categories": ["Jewelry & Watches"]
+    },
+    {
+      "slug": "health",
+      "name": "Health, Medical & Wellness",
+      "sites": ["medicalsupplie", "homewellnessdeals"],
+      "categories": []
+    },
+    {
+      "slug": "home",
+      "name": "Home, Kitchen & Furniture",
+      "sites": ["buybeststore", "desimarkets"],
+      "categories": ["Home, Garden & Furniture", "Home Improvement"]
+    },
+    {
+      "slug": "bed-bath",
+      "name": "Bed & Bath",
+      "sites": ["bedbathbuy"],
+      "categories": []
+    },
+    {
+      "slug": "flowers-decor",
+      "name": "Flowers, Roses & Decor",
+      "sites": ["flowerofheaven"],
+      "categories": []
+    },
+    {
+      "slug": "outdoor",
+      "name": "Outdoor, Camping & Sports",
+      "sites": ["outdoorsports", "outdoorhaulers"],
+      "categories": ["Sports & Outdoors"]
+    },
+    {
+      "slug": "auto",
+      "name": "Auto & Car Accessories",
+      "sites": ["drivezone"],
+      "categories": []
+    },
+    {
+      "slug": "travel",
+      "name": "Travel & Luggage",
+      "sites": ["flyhorizons", "luxurytravel", "ticktes", "ezpassuk"],
+      "categories": []
+    },
+    {
+      "slug": "pets",
+      "name": "Pets",
+      "sites": ["petscoolstuff"],
+      "categories": ["Pet Supplies"]
+    },
+    {
+      "slug": "safety",
+      "name": "Safety & Security",
+      "sites": ["firearmsafety"],
+      "categories": []
+    },
+    {
+      "slug": "electronics-office",
+      "name": "Electronics & Office",
+      "sites": ["buybeststoresuk", "businessbuy", "realskillset"],
+      "categories": ["Consumer Electronics", "Phones & Accessories"]
+    },
+    {
+      "slug": "costumes-party",
+      "name": "Costumes, Party & Seasonal",
+      "sites": ["costumescout"],
+      "categories": []
+    }
+  ]
+}
